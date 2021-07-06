@@ -1,2 +1,0 @@
-2021/06/28 15:02:35.812  cmd("BLUEBOY STRUP with ID 105, MSG 'what a world!'")
-2021/06/28 15:02:50.993  cmd("BLUEBOY STRUP with ID 105, MSG 'give me a the meat, boys'")

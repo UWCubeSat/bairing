@@ -7,5 +7,5 @@ AUTO_INTERFACE_TARGETS # Use cmd_tlm_server.txt from all targets declared in sys
 #   Little endian, sync pattern of 0xDEADBEEF (in big endian)
 #   [Sync pattern: 4 bytes] | [Length: 2 bytes] | [Data: Length]
 #   Automatically fills in sync pattern and length fields on outgoing packets
-INTERFACE BLUEBOY_INT serial_interface.rb COM5 COM5 57600 NONE 1 10.0 10.0 LENGTH 32 16 6 1 LITTLE_ENDIAN 6 0xEFBEADDE 1024 true
+INTERFACE BLUEBOY_INT serial_interface.rb COM4 COM4 57600 NONE 1 10.0 nil LENGTH 32 16 6 1 LITTLE_ENDIAN 6 0xEFBEADDE 1024 true
   TARGET BLUEBOY

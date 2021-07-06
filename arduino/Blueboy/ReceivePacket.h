@@ -3,57 +3,62 @@
 
 class ReceivePacket {
  public:
-  ReceivePacket(char *buf): dataBuf(buf), plen(0), id(0), toRead(0), offset(0), mode(Length) { }
-  void begin(uint16_t off = 0);
-  bool addByte(uint8_t byte);
-  bool completed();
-  uint16_t getPacketDataLength();
-  uint8_t getPacketID();
+  ReceivePacket(char *buf): _dataBuf(buf), _plen(0), _id(0), _toRead(0), _offset(0), _mode(Length) { }
+  void Begin(uint16_t off = 0);
+  bool AddByte(uint8_t byte);
+  bool Completed();
+  uint16_t GetPacketDataLength();
+  uint8_t GetPacketID();
  private:
   enum ReadMode { Length, ID, Data };
-  ReadMode mode;
+  ReadMode  _mode;
   
-  char *dataBuf;        // data buf
-  uint16_t plen;        // packet length
-  uint8_t id;
-  uint16_t toRead;
-  uint16_t offset;
+  char *    _dataBuf;     // data buf
+  uint16_t  _plen;        // packet length
+  uint8_t   _id;
+  uint16_t  _toRead;
+  uint16_t  _offset;
 };
 
-void ReceivePacket::begin(uint16_t off) {
-  this->offset = off;
-  this->plen = 0;
-  this->id = 0;
-  this->toRead = sizeof(this->plen);
-  this->mode = Length;
+void ReceivePacket::Begin(uint16_t off) {
+  this->_offset = off;
+  this->_plen = 0;
+  this->_id = 0;
+  this->_toRead = sizeof(this->_plen);
+  this->_mode = Length;
 }
 
 // adds the given byte to the buffer, returning true if adding the byte
 // completed the packet and false otherwise
-bool ReceivePacket::addByte(uint8_t readbyte) {
-  if (this->toRead == 0) {
+bool ReceivePacket::AddByte(uint8_t readbyte) {
+  if (this->_toRead == 0) {
     return false;
   }
-  switch (this->mode) {
+  switch (this->_mode) {
     case Length:
-      this->plen = ((uint16_t) readbyte << 8) | (this->plen >> 8);
-      this->toRead--;
+      this->_plen = ((uint16_t) readbyte << 8) | (this->_plen >> 8);
+      this->_toRead--;
       
-      if (this->toRead == 0) {
+      if (this->_toRead == 0) {
         // we just added the last length field byte, move to data on next cycle
-        this->toRead = this->plen;
-        this->mode = ID;
+        this->_toRead = this->_plen;
+        this->_mode = ID;
       }
       break;
     case ID:
-      this->id = readbyte;
-      this->toRead--;
-      this->mode = Data;
+      this->_id = readbyte;
+      this->_toRead--;
+      if (this->_toRead == 0) {
+        // we received a packet with no data, we're done
+        return true;
+      } else {
+        this->_mode = Data;
+      }
       break;
     case Data:
-      this->dataBuf[this->offset++] = readbyte;
-      this->toRead--;
-      if (this->toRead == 0) {
+      this->_dataBuf[this->_offset++] = readbyte;
+      this->_toRead--;
+      if (this->_toRead == 0) {
         // just added last data byte, we're done
         return true;
       }
@@ -64,43 +69,16 @@ bool ReceivePacket::addByte(uint8_t readbyte) {
   return false;
 }
 
-bool ReceivePacket::completed() {
-  return this->toRead == 0;
+bool ReceivePacket::Completed() {
+  return this->_toRead == 0;
 }
 
-uint16_t ReceivePacket::getPacketDataLength() {
-  return this->plen - sizeof(this->id);  // packet length minus id field
+uint16_t ReceivePacket::GetPacketDataLength() {
+  return this->_plen - sizeof(this->_id);  // packet length minus id field
 }
 
-uint8_t ReceivePacket::getPacketID() {
-  return this->id;
+uint8_t ReceivePacket::GetPacketID() {
+  return this->_id;
 }
 
 #endif
-
-/* TESTING CODE
-char buf[256];
-ReceivePacket buffer = ReceivePacket(buf);
-
-void setup() {
-  Serial.begin(9600);
-  buffer.begin();
-}
-
-void loop() {
-  if (Serial.available()) {
-    if (!buffer.completed()) {
-      buffer.addByte(Serial.read());
-    }
-    if (buffer.completed()) {
-      Serial.print("Length: ");
-      Serial.println(buffer.len());
-
-      Serial.write(buffer.data(), buffer.len());
-      Serial.println();
-      
-      buffer.begin();
-    }
-  }
-}
-*/
