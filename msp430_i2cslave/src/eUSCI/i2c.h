@@ -24,7 +24,7 @@ enum class I2CClockFrequency {
 // I2C bus with buffered read/write
 class I2CBus {
  public:
-  I2CBus(struct msp430::UCBx *volatile base): _base(base), _address(0) { }
+  I2CBus(volatile struct msp430::UCBx * base): _base(base), _address(0) { }
   void Begin();                         // begin as master
   void Begin(uint8_t address);          // begin as slave
   int RequestFrom(uint8_t address,      // as master, request from slave
@@ -43,7 +43,7 @@ class I2CBus {
  private:
   char _rbuf[I2C_RWBUFLEN];             // read buffer
   char _wbuf[I2C_RWBUFLEN];             // write buffer
-  struct msp430::UCBx *volatile _base;  // bus register base
+  volatile struct msp430::UCBx *_base;  // bus register base
   void (*_onReceive)(int);              // function called when slave receives transmitted bytes from the master
   void (*_onRequest)(int);              // function called when slave
   I2CMode _mode;                        // current I2C mode
