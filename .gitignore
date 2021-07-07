@@ -33,3 +33,7 @@
 
 # COSMOS
 outputs/
+
+# CCS
+msp430_i2cslave/Debug/
+msp430_i2cslave/.launches/
