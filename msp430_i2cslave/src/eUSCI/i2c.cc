@@ -5,14 +5,33 @@
 #include "msp430plus.h"
 #include "i2c.h"
 
+using msp430::UCBx;
+
 namespace eusci {
 
 I2CBus I2C[4] = {
-  I2CBus(msp430::UCB[0]),
-  I2CBus(msp430::UCB[1]),
-  I2CBus(msp430::UCB[2]),
-  I2CBus(msp430::UCB[3]),
+  I2CBus(I2CBusHandle::B0),
+  I2CBus(I2CBusHandle::B1),
+  I2CBus(I2CBusHandle::B2),
+  I2CBus(I2CBusHandle::B3),
 };
+
+/*
+// i2c bus initialization parameters
+struct I2CInitParameters {
+  int pbase;
+  int sdapin;
+  int sclpin;
+  I2CInitParameters(int base, int sda, int scl): pbase(base), sdapin(sda), sclpin(scl) { }
+};
+
+struct I2CInitParameters I2CPARAMS[4] = {
+  I2CInitParameters(1, 6, 7),  // B0, 1.6 and 1.7
+  I2CInitParameters(5, 0, 1),  // B1, 5.0 and 5.1
+  I2CInitParameters(7, 0, 1),  // B2, 7.0 and 7.1
+  I2CInitParameters(6, 4, 5),  // B3, 6.4 and 6.5
+};
+*/
 
 // begin as master
 void I2CBus::Begin() {
@@ -21,11 +40,20 @@ void I2CBus::Begin() {
 
 // begin as slave
 void I2CBus::Begin(uint8_t address) {
-  this->_address = address;
-  this->_mode = I2CMode::Slave;
+  _address = address;
+  _mode = I2CMode::Slave;
 
-  // modify mode register
-  // modify own address register
+  struct UCBx *bus = msp430::UCB[(int) _bus];
+
+  bus->ctlw0 = UCSWRST;                       // reset, begin configuration
+
+  bus->ctlw0 |= UCMODE_3 | UCSYNC;            // i2c, slave mode (UCMST = 0)
+  bus->i2coa0 = UCOAEN | (_address & 0x7f);   // set own address
+
+  bus->ctlw0 &= ~UCSWRST;                     // clear reset, enable UCB
+  bus->ie |= UCRXIE;                          // enable interrupt on receive
+
+  _enable_interrupts();                       // enable general interrupts
 }
 
 // as master, request from slave

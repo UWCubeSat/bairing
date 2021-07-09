@@ -7,14 +7,20 @@
 
 #include <cinttypes>
 #include <msp430plus.h>
+#include "eusci.h"
 
 namespace eusci {
-
-constexpr int I2C_RWBUFLEN = 32;    // I2CBus read/write buffer lengths
 
 enum class I2CMode {
   Master,
   Slave
+};
+
+enum class I2CBusHandle {
+  B0 = 0,
+  B1 = 1,
+  B2 = 2,
+  B3 = 3
 };
 
 enum class I2CClockFrequency {
@@ -24,7 +30,7 @@ enum class I2CClockFrequency {
 // I2C bus with buffered read/write
 class I2CBus {
  public:
-  I2CBus(volatile struct msp430::UCBx * base): _base(base), _address(0) { }
+  I2CBus(I2CBusHandle bus): _bus(bus), _address(0) { }
   void Begin();                         // begin as master
   void Begin(uint8_t address);          // begin as slave
   int RequestFrom(uint8_t address,      // as master, request from slave
@@ -41,9 +47,7 @@ class I2CBus {
   void BindReceiveCallback(void (*onReceive)(int));     // calls the given function whenever this bus receives data as a slave
   void BindRequestCallback(void (*onRequest)(int));     // calls the given function whenever this bus is requested data from the master
  private:
-  char _rbuf[I2C_RWBUFLEN];             // read buffer
-  char _wbuf[I2C_RWBUFLEN];             // write buffer
-  volatile struct msp430::UCBx *_base;  // bus register base
+  I2CBusHandle _bus;                    // bus handle
   void (*_onReceive)(int);              // function called when slave receives transmitted bytes from the master
   void (*_onRequest)(int);              // function called when slave
   I2CMode _mode;                        // current I2C mode

@@ -29,4 +29,17 @@ struct UCBx *volatile UCB[4] = {
 };
 #endif
 
+struct GPIOPx *volatile GPIOP[10] = {
+  (struct GPIOPx *) nullptr,  // P0 doesn't exist
+  (struct GPIOPx *)  P1_BASE,
+  (struct GPIOPx *) (P2_BASE + 0x1),  // offset by 1 byte
+  (struct GPIOPx *)  P3_BASE,
+  (struct GPIOPx *) (P4_BASE + 0x1),  // offset by 1 byte
+  (struct GPIOPx *)  P5_BASE,
+  (struct GPIOPx *) (P6_BASE + 0x1),  // offset by 1 byte
+  (struct GPIOPx *)  P7_BASE,
+  (struct GPIOPx *) (P8_BASE + 0x1),  // offset by 1 byte
+  (struct GPIOPx *)  P9_BASE
+};
+
 }

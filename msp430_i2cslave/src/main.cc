@@ -3,40 +3,67 @@
 
 #include "eUSCI/i2c.h"
 
-// own address as I2C slave
-constexpr uint16_t SLAVE_ADDR = 0x12;
+using eusci::I2CBusHandle;
 
-void gpioInit()
-{
-    // I2C pins
-    // UCB1 SDA: 5.0
-    // UCB1 SCL: 5.1
-    // Primary module function (SEL1 = 0, SEL0 = 1)
-    // See Table 9-31 in msp430fr599x datasheet
-    P5SEL0 |= BIT0 | BIT1;
-    P5SEL1 &= ~(BIT0 | BIT1);
+// i2c bus initialization parameters
+struct I2CInitParameters {
+  int pbase;
+  int sdapin;
+  int sclpin;
+  uint8_t funcsel;
+  I2CInitParameters(int base, int sda, int scl, uint8_t sel): pbase(base), sdapin(sda), sclpin(scl), funcsel(sel) { }
+};
+
+struct I2CInitParameters I2CPARAMS[4] = {
+  I2CInitParameters(1, 6, 7, 0b10),  // B0, 1.6 and 1.7, secondary
+  I2CInitParameters(5, 0, 1, 0b01),  // B1, 5.0 and 5.1, primary
+  I2CInitParameters(7, 0, 1, 0b01),  // B2, 7.0 and 7.1, primary
+  I2CInitParameters(6, 4, 5, 0b01),  // B3, 6.4 and 6.5, primary
+};
+
+void gpioInit(I2CBusHandle bus) {
+    struct I2CInitParameters param = I2CPARAMS[(int) bus];
+    struct msp430::GPIOPx *i2cport = msp430::GPIOP[param.pbase];
+    uint8_t mask = (1 << param.sdapin) | (1 << param.sclpin);
+
+    // configure sel0
+    if (param.funcsel & 0x1) {
+        i2cport->sel0 |= mask;
+    } else {
+        i2cport->sel0 &= ~mask;
+    }
+
+    // configure sel1
+    if (param.funcsel & 0x2) {
+        i2cport->sel1 |= mask;
+    } else {
+        i2cport->sel1 &= ~mask;
+    }
 
     // disable high-impedance mode to activate configured port settings
     PM5CTL0 &= ~LOCKLPM5;
 }
 
-void i2cInit() {
-    UCB1CTLW0 = UCSWRST;                // reset, begin configuration
+void i2cInit(I2CBusHandle bus, uint8_t address) {
+    struct msp430::UCBx *i2cbus = msp430::UCB[(int) bus];
+    i2cbus->ctlw0 = UCSWRST;                       // reset, begin configuration
 
-    UCB1CTLW0 |= UCMODE_3 | UCSYNC;     // i2c, slave mode (UCMST = 0)
-    UCB1I2COA0 = UCOAEN | SLAVE_ADDR;   // set own address
+    i2cbus->ctlw0 |= UCMODE_3 | UCSYNC;            // i2c, slave mode (UCMST = 0)
+    i2cbus->i2coa0 = UCOAEN | (address & 0x7f);    // set own address
 
-    UCB1CTLW0 &= ~UCSWRST;              // clear reset, enable UCB
-    UCB1IE |= UCRXIE;
+    i2cbus->ctlw0 &= ~UCSWRST;                     // clear reset, enable UCB
+    i2cbus->ie |= UCRXIE;                          // enable interrupt on receive
 
-    _enable_interrupts();
+    _enable_interrupts();                       // enable general interrupts
 }
 
 int main(void) {
 	WDTCTL = WDTPW | WDTHOLD;	        // stop watchdog timer
 
-	gpioInit();
-	i2cInit();
+	I2CBusHandle bus = I2CBusHandle::B1;
+
+	gpioInit(bus);
+	i2cInit(bus, 0x3A);
 
 	for (;;) { }
 }
