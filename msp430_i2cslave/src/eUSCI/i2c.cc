@@ -41,16 +41,17 @@ void I2CBus::Begin(uint8_t address) {
   base->ctlw0 = UCSWRST;                       // reset, begin configuration
 
   base->ctlw0 |= UCMODE_3 | UCSYNC;            // i2c, slave mode (UCMST = 0)
-  base->i2coa0 = UCOAEN | (_address & 0x7f);   // set own address
+  base->i2coa0 = UCOAEN | (_address & 0x7f);   // set own address, enable
 
   base->ctlw0 &= ~UCSWRST;                     // clear reset, enable UCB
 
-  base->ie |= UCRXIE | UCSTTIE | UCSTPIE;      // enable interrupt on receive, start and stop
+  base->ie |= UCRXIE | UCTXIE | UCSTTIE | UCSTPIE;      // enable interrupt on receive, transmit, start and stop
 
   _enable_interrupts();                        // enable general interrupts
 }
 
-// as master, request from slave
+// as master, request quantity bytes from the slave at the given address
+// if stop, send a stop condition at the end of the request; else, send a repeated start
 int I2CBus::RequestFrom(uint8_t address, int quantity, bool stop) {
   // TODO master
   return -1;
@@ -69,23 +70,19 @@ int I2CBus::EndTransmission() {
 
 // write a single byte during a transmission, or in response to a master
 int I2CBus::Write(char byte) {
-  // queue a byte to be written
-  return -1;
+  return Write(&byte, 1);
 }
 
-// write a buffer of data
+// write a buffer of data during a transmission, or in response to a master
+// return the number of bytes written
 int I2CBus::Write(char *buffer, int length) {
-  /*
-  if (_wbuf.Size() + length > RWBUFLEN) {
-    // writing all bytes would overrun, so only write up to the buffer length
-    length = RWBUFLEN - _wbuf.Size();
+  int written;
+  for (written = 0; written < length; written++) {
+    if (!_wbuf.Push(buffer[written])) {
+      break;
+    }
   }
-  */
-  for (int i = 0; i < length; i++) {
-    // _wbuf[_wsize] = buffer[i];
-    _wbuf.Push(buffer[i]);
-  }
-  return length;
+  return written;
 }
 
 // returns the number of bytes available to read
@@ -97,7 +94,6 @@ int I2CBus::Available() {
 // reads a single byte, received from RequestFrom or transmitted from the master
 // pre: available() > 0
 char I2CBus::Read() {
-  // pop first element from read buffer, if available
   return _rbuf.Pop();
 }
 
@@ -108,12 +104,12 @@ void I2CBus::SetClock(I2CClockFrequency freq) {
 }
 
 // calls the given function whenever this bus receives data as a slave
-void I2CBus::BindReceiveCallback(void (*onReceive)(int size)) {
+void I2CBus::OnReceive(void (*onReceive)(int size)) {
   _onReceive = onReceive;
 }
 
 // calls the given function whenever this bus is requested data from the master
-void I2CBus::BindRequestCallback(void (*onRequest)()) {
+void I2CBus::OnRequest(void (*onRequest)()) {
   _onRequest = onRequest;
 }
 
@@ -168,7 +164,7 @@ void I2CBus::gpioInit() {
 
 // returns a pointer to this I2C bus's UCB register base
 inline struct msp430::UCBx *I2CBus::getBase() {
-  return msp430::UCB[(int) _bus];
+  return msp430::UCB[(unsigned int) _bus];
 }
 
 // debug statistics, TODO remove eventually
@@ -181,13 +177,6 @@ int WRITES = 0;
 void I2CBus::receiveByte() {
   char byte = getBase()->rxbuf;
   READS++;
-
-  // add read byte to read buffer if it won't overrun the buffer
-  /*
-  if (_rsize < RWBUFLEN) {
-    // _rbuf[_rsize++] = byte;
-  }
-  */
 
   _rbuf.Push(byte);
 }
@@ -217,14 +206,13 @@ void I2CBus::ISRHandler() {
 
       if (!_started) {
         _started = true;
-      } else {
+      } else if (!_rbuf.Empty()) {
         // already started without stopping, so this is a repeated start and
         // we should complete the current buffer
         completeReadBuffer();
       }
+      _requested = false;
 
-      // _rsize = 0;
-      // _wsize = 0;
       break;
     case USCI_I2C_UCSTPIFG:         // Stop condition received
       STOPS++;
@@ -235,10 +223,10 @@ void I2CBus::ISRHandler() {
         receiveByte();
       }
 
-      completeReadBuffer();
+      if (!_rbuf.Empty()) {
+        completeReadBuffer();
+      }
 
-      // _rsize = 0;
-      // _wsize = 0;
       _started = false;
       break;
     case USCI_I2C_UCRXIFG3:         // Complete byte received in slave mode on address 3
@@ -251,13 +239,17 @@ void I2CBus::ISRHandler() {
     case USCI_I2C_UCTXIFG2:         // Transmit buffer empty in slave mode on address 2
     case USCI_I2C_UCTXIFG1:         // Transmit buffer empty in slave mode on address 1
     case USCI_I2C_UCTXIFG0:         // Transmit buffer empty in slave mode on address 0
-      // TODO finish buffered write
-      while (_wbuf.Empty()) {
+      if (!_requested) {
         // no bytes currently on the write buffer, ask the user for some
         // expected that the user calls write() one or more times in onRequest
         _onRequest();
+        _requested = true;
       }
-      base->txbuf = _wbuf.Pop();
+
+      // only actually transmit when we have something to write
+      if (!_wbuf.Empty()) {
+        base->txbuf = _wbuf.Pop();
+      }
     default:
       break;
   }
@@ -266,22 +258,22 @@ void I2CBus::ISRHandler() {
 // interrupt handlers for USCI_B0-3
 #pragma vector = USCI_B0_VECTOR
 __interrupt void USCI_B0_ISR(void) {
-  GetI2C(I2CBus::B0)->ISRHandler();
+  (&I2CBuses[0])->ISRHandler();
 }
 
 #pragma vector = USCI_B1_VECTOR
 __interrupt void USCI_B1_ISR(void) {
-  GetI2C(I2CBus::B1)->ISRHandler();
+  (&I2CBuses[1])->ISRHandler();
 }
 
 #pragma vector = USCI_B2_VECTOR
 __interrupt void USCI_B2_ISR(void) {
-  GetI2C(I2CBus::B2)->ISRHandler();
+  (&I2CBuses[2])->ISRHandler();
 }
 
 #pragma vector = USCI_B3_VECTOR
 __interrupt void USCI_B3_ISR(void) {
-  GetI2C(I2CBus::B3)->ISRHandler();
+  (&I2CBuses[3])->ISRHandler();
 }
 
 }// namespace EUSCI

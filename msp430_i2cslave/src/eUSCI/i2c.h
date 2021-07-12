@@ -48,8 +48,8 @@ class I2CBus {
   };
 
   I2CBus(Handle bus):
-    _bus(bus), _address(0), _mode(I2CMode::Unused), //, _rsize(0), _wsize(0), _windex(0),
-    _transmitting(false), _started(false),
+    _bus(bus), _address(0), _mode(I2CMode::Unused),
+    _transmitting(false), _started(false), _requested(false),
     _onReceive([](int size) { }), _onRequest([]() { }) { }
   void Begin();                         // begin as master
   void Begin(uint8_t address);          // begin as slave
@@ -64,23 +64,13 @@ class I2CBus {
   char Read();                              // reads a single byte, received from RequestFrom or transmitted from the master
   void SetClock(I2CClockFrequency freq);    // sets the clock frequency transmitted if a master
 
-  void BindReceiveCallback(void (*_onReceive)(int size));  // calls the given function whenever this bus receives data as a slave
-  void BindRequestCallback(void (*_onRequest)());          // calls the given function whenever this bus is requested data from the master
+  void OnReceive(void (*_onReceive)(int size));  // calls the given function whenever this bus receives data as a slave
+  void OnRequest(void (*_onRequest)());          // calls the given function whenever this bus is requested data from the master
   I2CMode GetMode();                        // returns the bus's current mode
 
   void ISRHandler();                        // interrupt service routine handler
 
-  /*
-  I2CBus() = delete;
-  I2CBus(const I2CBus&) = delete;
-  I2CBus(const I2CBus&&) = delete;
-  */
  private:
-  /*
-  char _rbuf[RWBUFLEN];                 // read buffer
-  char _wbuf[RWBUFLEN];                 // write buffer
-  int _rsize, _wsize, _windex;          // current sizes of the read and write buffers, current index in write buffer
-  */
   SimpleQueue<char> _rbuf;              // read buffer
   SimpleQueue<char> _wbuf;              // write buffer
 
@@ -90,6 +80,7 @@ class I2CBus {
   I2CMode _mode;                        // current I2C mode
   bool _transmitting;                   // true iff currently in a transmission
   bool _started;                        // whether an initial start condition has been received
+  bool _requested;                      // whether a request for writing has been processed or not this cycle
   uint8_t _address;                     // slave address
 
   // private helper functions

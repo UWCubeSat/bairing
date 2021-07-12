@@ -1,5 +1,7 @@
 /*
  * SimpleQueue.h
+ *
+ * A simple FIFO queue template with push and pop functionality
  */
 
 #ifndef SRC_UTIL_SIMPLEQUEUE_H_

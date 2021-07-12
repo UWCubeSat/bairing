@@ -1,3 +1,9 @@
+/*
+ * A test of the buffered I2C slave library, which receives some number of bytes from the master and
+ * echoes them back in reverse order.
+ *
+ */
+
 #include <msp430plus.h>
 #include <cstdint>
 
@@ -8,64 +14,46 @@ using eusci::I2CMode;
 
 const I2CBus::Handle BUS = I2CBus::B1;
 
-/*
-// I2C buffered receive callback, invoked whenever an entire buffer has been received
-void onReceiveBytes(char *buf, int bufsize) {
-  // Debugging to ensure all bytes are properly received
-  volatile int starts = eusci::STARTS;
-  volatile int stops = eusci::STOPS;
-  volatile int reads = eusci::READS;
-  volatile int error = 0;
+char receiveBuffer[64];
+int received;
 
-  if (bufsize != 16) {
-    error = bufsize;
-  } else {
-    for (int i = 0; i < 16; i++) {
-      if (buf[i] != i) {
-        error = buf[i];
-      }
-    }
-  }
-}
-*/
-
+// called whenever the slave has received a full message in read mode
 void onReceiveBytes(int bufsize) {
   volatile int error = 0;
   volatile int starts = eusci::STARTS;
   volatile int stops = eusci::STOPS;
   volatile int reads = eusci::READS;
-  I2CBus *bus = eusci::GetI2C(BUS);
-  if (bufsize != bus->Available()) {
-    error = bus->Available();
-  }
 
-  if (bus->Available() != 16) {
-    error = bus->Available();
-  }
+  I2CBus *bus = eusci::GetI2C(BUS);
 
   char i = 0;
   char read;
+  received = 0;
   while (bus->Available()) {
     read = bus->Read();
-    if (read != i) {
-      error = read;
-    }
+
+    receiveBuffer[received] = read;
+    received++;
     i++;
   }
 }
 
+// called whenever the master requests a message of data from the slave
 void onRequestI2C() {
   I2CBus *bus = eusci::GetI2C(BUS);
+  for (int i = received - 1; i >= 0; i--) {
+    bus->Write(receiveBuffer[i]);
+  }
 }
 
 int main(void) {
-  volatile int test = 0;
 	WDTCTL = WDTPW | WDTHOLD;	        // stop watchdog timer
 
 	I2CBus *bus = eusci::GetI2C(BUS);
 	bus->Begin(0x3A);
 
-	bus->BindReceiveCallback(&onReceiveBytes);
+	bus->OnReceive(&onReceiveBytes);
+	bus->OnRequest(&onRequestI2C);
 
 	for (;;) { }
 }
