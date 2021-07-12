@@ -36,4 +36,5 @@ outputs/
 
 # CCS
 msp430_i2cslave/Debug/
+msp430_i2cslave/Testing/
 msp430_i2cslave/.launches/

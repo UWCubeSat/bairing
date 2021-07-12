@@ -18,6 +18,9 @@
 #include <cinttypes>
 #include <msp430plus.h>
 #include "eusci.h"
+#include "util/SimpleQueue.h"
+
+using util::SimpleQueue;
 
 namespace eusci {
 
@@ -45,9 +48,9 @@ class I2CBus {
   };
 
   I2CBus(Handle bus):
-    _bus(bus), _address(0), _mode(I2CMode::Unused), _rsize(0), _wsize(0), _windex(0),
+    _bus(bus), _address(0), _mode(I2CMode::Unused), //, _rsize(0), _wsize(0), _windex(0),
     _transmitting(false), _started(false),
-    _onReceive([](char *buf, int size) { }), _onRequest([]() { }) { }
+    _onReceive([](int size) { }), _onRequest([]() { }) { }
   void Begin();                         // begin as master
   void Begin(uint8_t address);          // begin as slave
   int RequestFrom(uint8_t address,      // as master, request from slave
@@ -61,8 +64,8 @@ class I2CBus {
   char Read();                              // reads a single byte, received from RequestFrom or transmitted from the master
   void SetClock(I2CClockFrequency freq);    // sets the clock frequency transmitted if a master
 
-  void BindReceiveCallback(void (*_onReceive)(char *buf, int size));  // calls the given function whenever this bus receives data as a slave
-  void BindRequestCallback(void (*_onRequest)());                     // calls the given function whenever this bus is requested data from the master
+  void BindReceiveCallback(void (*_onReceive)(int size));  // calls the given function whenever this bus receives data as a slave
+  void BindRequestCallback(void (*_onRequest)());          // calls the given function whenever this bus is requested data from the master
   I2CMode GetMode();                        // returns the bus's current mode
 
   void ISRHandler();                        // interrupt service routine handler
@@ -73,13 +76,17 @@ class I2CBus {
   I2CBus(const I2CBus&&) = delete;
   */
  private:
+  /*
   char _rbuf[RWBUFLEN];                 // read buffer
   char _wbuf[RWBUFLEN];                 // write buffer
   int _rsize, _wsize, _windex;          // current sizes of the read and write buffers, current index in write buffer
+  */
+  SimpleQueue<char> _rbuf;              // read buffer
+  SimpleQueue<char> _wbuf;              // write buffer
 
   Handle _bus;                          // bus handle
-  void (*_onReceive)(char *buf, int size);      // function called when slave receives transmitted bytes from the master
-  void (*_onRequest)();                         // function called when slave receives request for transmission to master
+  void (*_onReceive)(int size);         // function called when slave receives transmitted bytes from the master
+  void (*_onRequest)();                 // function called when slave receives request for transmission to master
   I2CMode _mode;                        // current I2C mode
   bool _transmitting;                   // true iff currently in a transmission
   bool _started;                        // whether an initial start condition has been received
