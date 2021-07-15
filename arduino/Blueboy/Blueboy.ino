@@ -1,6 +1,7 @@
 #include <SoftwareSerial.h>
 #include "PacketReceiver.h"
 #include "PacketSender.h"
+#include "CommandProcessor.h"
 
 const uint32_t SYNC_PATTERN = 0xDEADBEEF;
 
@@ -28,13 +29,7 @@ unsigned long lastTime;	 // time since last packet was sent
 PacketReceiver packetReceiver = PacketReceiver(rcvbuf, SYNC_PATTERN);
 PacketSender packetSender = PacketSender(sendbuf);
 
-// Command IDs
-enum class Command {
-  Reset = 0x01,
-  BeginLog = 0x02,
-  EndLog = 0x04,
-  Message = 0x69,
-};
+CommandProcessor commands;
 
 // Telemetry IDs
 enum class Telemetry {
@@ -76,117 +71,40 @@ void SendAttitudePacket() {
   packetSender.Send(bt);
 }
 
-// process a packet that's just been received
-void ProcessPacket(PacketReceiver packet, char *data) {
-  Command id = (Command) packetReceiver.GetPacketID();
-  uint16_t datalen = packetReceiver.GetPacketDataLength();
-
-  switch (id) {
-    case Command::Reset:
-      // reset, then send reset signals to peripherals
-      // TODO
-      SendMessagePacket(RESET_MSG);
-      Serial.println("pretend we sent reset signals");
-      Serial.println("pretend this reset the arduino");
-      Serial.println("pretend we don't see this, since the arduino will have reset");
-      break;
-    case Command::BeginLog:
-      // start telemetry
-      logging = true;
-      SendMessagePacket(BEGIN_LOG_MSG);
-      Serial.println(BEGIN_LOG_MSG);
-      break;
-    case Command::EndLog:
-      // end telemetry
-      logging = false;
-      SendMessagePacket(END_LOG_MSG);
-      Serial.println(END_LOG_MSG);
-      break;
-    case Command::Message:
-      // send the stored message, or update and echo the message from a string sent
-      if (datalen > 0) {
-        // received a string to update stored message with
-        // cap string to 31 characters long, then null-terminate in case rcvbuf isn't already
-        datalen = min(datalen, 31);
-        memcpy(message, rcvbuf, datalen);
-        message[datalen] = '\0';
-      }
-      // send stored message
-      SendMessagePacket(message);
-      Serial.println(message);
-      break;
-    default:
-      // command not recognized
-      SendMessagePacket(UNRECOGNIZED_MSG);
-      Serial.println(UNRECOGNIZED_MSG);
-      break;
-  }
-}
-
 // Check if we received a byte, and if we did process it
 void CheckReceiveByte() {
-  if (bt.available()) {
-    char readbyte = bt.read();
+  
+}
 
-    if (packetReceiver.AddByte(readbyte)) {
-      uint16_t rcvbuflen = packetReceiver.GetPacketDataLength();
-      uint8_t id = packetReceiver.GetPacketID();
+bool ResetCommand(const char *data, uint16_t len) {
+  Serial.println("Pretend we reset everything here");
+  return true;  // in the real command, this won't even happen
+}
 
-      Serial.println("Packet received");
-      Serial.print("  Length: ");
-      Serial.println(rcvbuflen);
-      
-      Serial.print("  ID: ");
-      Serial.println(id);
-      
-      Serial.print("  Data: ");
-      for (int i = 0; i < rcvbuflen; i++) {
-        Serial.print(rcvbuf[i], HEX);
-        Serial.print(" ");
-      }
-      Serial.println();
+bool BeginLogCommand(const char *data, uint16_t len) {
+  logging = true;
+  return true;
+}
 
-      ProcessPacket(packetReceiver, rcvbuf);
+bool EndLogCommand(const char *data, uint16_t len) {
+  logging = false;
+  return true;
+}
 
-      packetReceiver.Begin();  // restart packet receiver
-    }
-    
-    /*
-    if (packetReceiver.Completed()) {
-     // we are not currently receiving a packet
-      pattern = ((uint32_t) readbyte << 24) | (pattern >> 8);
-      if (pattern == SYNC_PATTERN) {
-        // Serial.println("Packet begin");
-        packetReceiver.Begin();
-      }
-    } else {
-      if (packetReceiver.AddByte(readbyte)) {
-        // finished packet
-        uint16_t rcvbuflen = packetReceiver.GetPacketDataLength();
-        uint8_t id = packetReceiver.GetPacketID();
-
-        Serial.println("Packet received");
-        Serial.print("  Length: ");
-        Serial.println(rcvbuflen);
-        
-        Serial.print("  ID: ");
-        Serial.println(id);
-        
-        Serial.print("  Data: ");
-        for (int i = 0; i < rcvbuflen; i++) {
-          Serial.print(rcvbuf[i], HEX);
-          Serial.print(" ");
-        }
-        Serial.println();
-
-        ProcessPacket(packetReceiver, rcvbuf);
-    
-        // reset sync pattern to prepare for the next pattern
-        pattern = 0;
-      }
-    }
-    */
+bool MessageCommand(const char *data, uint16_t len) {
+  // send the stored message, or update and echo the message from a string sent
+  if (len > 0) {
+    // received a string to update stored message with
+    // cap string to 31 characters long, then null-terminate in case rcvbuf isn't already
+    len = min(len, 31);
+    memcpy(message, rcvbuf, len);
+    message[len] = '\0';
   }
+  
+  // send stored message
+  SendMessagePacket(message);
+  
+  return true;
 }
 
 void setup() {
@@ -199,11 +117,30 @@ void setup() {
   
   strcpy(message, DEFAULT_MSG);
 
-  packetReceiver.Begin();
+  commands.Bind(CommandID::Reset,     &ResetCommand);
+  commands.Bind(CommandID::BeginLog,  &BeginLogCommand);
+  commands.Bind(CommandID::EndLog,    &EndLogCommand);
+  commands.Bind(CommandID::Message,   &MessageCommand);
+
+  packetReceiver.Begin();  // receive first packet
 }
 
 void loop() {
-  CheckReceiveByte();
+  while (bt.available()) {
+    // a byte is available to read over bluetooth
+    char readbyte = bt.read();
+
+    // register byte in the packet receiver
+    if (packetReceiver.AddByte(readbyte)) {
+      // packetReceiver.PrintPacketInfo();
+      
+      CommandID command = (CommandID) packetReceiver.GetPacketID();
+      uint16_t datalen = packetReceiver.GetPacketDataLength();
+      commands.Dispatch(command, rcvbuf, datalen);
+      
+      packetReceiver.Begin();  // restart packet receiver
+    }
+  }
   
   if (logging && (millis() - lastTime >= DELAY)) {
     SendAttitudePacket();

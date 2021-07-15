@@ -28,6 +28,9 @@ class PacketReceiver {
   
   // Returns the ID byte
   uint8_t GetPacketID();
+
+  // Prints information about the current packet, whether one ahs been received, the id, length and data
+  void PrintPacketInfo();
  private:
   enum ReadMode { Syncing, Length, ID, Data};
   ReadMode  _mode;
