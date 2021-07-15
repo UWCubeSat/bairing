@@ -2,21 +2,25 @@
 #define COMMAND_PROCESSOR_H_
 
 #include <Arduino.h>
+#include <SoftwareSerial.h>
+#include "PacketReceiver.h"
 
 // Command IDs
 enum class CommandID {
+  Invalid = 0x00,
   Reset = 0x01,
   BeginLog = 0x02,
   EndLog = 0x04,
   Message = 0x69,
 };
 
-// no-op command, used as the default behavior for commands before being bound
-constexpr bool NOOPCMD (const char *data, uint16_t len) { return false; }
-
 class CommandProcessor {
  public:
-  CommandProcessor(): _resetCommand(&NOOPCMD), _beginLogCommand(&NOOPCMD), _endLogCommand(&NOOPCMD), _messageCommand(&NOOPCMD) {}
+  // Initialize telemetry to use the given serial stream and packet sender
+  CommandProcessor(SoftwareSerial& serial, PacketReceiver& receiver);
+
+  // Update the command processor
+  void Tick();
   
   // Bind the given function to the command with the given ID
   // Command must accept a data byte buffer and buffer length, and return whether that command was successful
@@ -25,9 +29,13 @@ class CommandProcessor {
   // Call the function bound to the given command, returning true on success and false on failure
   bool Dispatch(CommandID cmd, const char *data, uint16_t dataLen);
  private:
+  SoftwareSerial& _serial;
+  PacketReceiver& _receiver;
+  
   bool (*_resetCommand)(const char *data, uint16_t len);      // reset command callback
   bool (*_beginLogCommand)(const char *data, uint16_t len);   // begin logging command callback
   bool (*_endLogCommand)(const char *data, uint16_t len);     // end logging command callback
   bool (*_messageCommand)(const char *data, uint16_t len);    // message command callback
+  bool (*_invalidCommand)(const char *data, uint16_t len);    // invalid command callback
 };
 #endif

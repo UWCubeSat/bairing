@@ -4,31 +4,39 @@
 #include "CommandProcessor.h"
 #include "BlueboyTelemetry.h"
 
+const int RX_PIN = 2;
+const int TX_PIN = 3;
+const int RST_PIN = 4;
+
 const uint32_t SYNC_PATTERN = 0xDEADBEEF;
 
 // packet messages
 const char *DEFAULT_MSG = "see how the brain plays around";
+
+const char *SETUP_MSG = "Initialized system";
 const char *BEGIN_LOG_MSG = "Began logging";
 const char *END_LOG_MSG = "Ended logging";
-const char *RESET_MSG = "Resetting system";
+const char *RESET_MSG = "Resetting system...";
 const char *UNRECOGNIZED_MSG = "Unrecognized command";
 
 char sendbuf[256];		   // send packet buffer, used to build a packet
 char rcvbuf[256];		     // buffer containing data received from packets (without sync, length, id, etc.)
+char strbuf[128];        // general-purpose string buffer
 char message[32];        // stored message to be echoed on command
 
-SoftwareSerial bt = SoftwareSerial(2, 3);  // rx on pin 2, tx on pin 3
+SoftwareSerial bt = SoftwareSerial(RX_PIN, TX_PIN);  // rx on pin 2, tx on pin 3
 
 PacketReceiver packetReceiver = PacketReceiver(rcvbuf, SYNC_PATTERN);
 PacketSender packetSender = PacketSender(sendbuf, SYNC_PATTERN);
 
-CommandProcessor commands;
+CommandProcessor commands = CommandProcessor(bt, packetReceiver);
 BlueboyTelemetry telemetry = BlueboyTelemetry(bt, packetSender);
 
 bool ResetCommand(const char *data, uint16_t len) {
   telemetry.SendMessage(RESET_MSG);
-  Serial.println("Pretend we reset everything here");
-  return true;  // in the real command, this won't even happen
+  digitalWrite(RST_PIN, LOW);  // pull pin low for reset
+  
+  return false;  // this shouldn't happen
 }
 
 bool BeginLogCommand(const char *data, uint16_t len) {
@@ -49,7 +57,7 @@ bool MessageCommand(const char *data, uint16_t len) {
     // received a string to update stored message with
     // cap string to 31 characters long, then null-terminate in case rcvbuf isn't already
     len = min(len, 31);
-    memcpy(message, rcvbuf, len);
+    memcpy(message, data, len);
     message[len] = '\0';
   }
   
@@ -58,7 +66,16 @@ bool MessageCommand(const char *data, uint16_t len) {
   return true;
 }
 
+bool InvalidCommand(const char *data, uint16_t cmdid) {
+  sprintf(strbuf, "%s: %02x", UNRECOGNIZED_MSG, cmdid);
+  telemetry.SendMessage(strbuf);
+  return true;
+}
+
 void setup() {
+  digitalWrite(RST_PIN, HIGH);  // need to write high first, or else the system will reset immediately
+  pinMode(RST_PIN, OUTPUT);
+  
   Serial.begin(9600);
   bt.begin(57600);
   
@@ -69,25 +86,14 @@ void setup() {
   commands.Bind(CommandID::EndLog,    &EndLogCommand);
   commands.Bind(CommandID::Message,   &MessageCommand);
 
+  // TODO initialize peripherals here
+
   packetReceiver.Begin();  // receive first packet
+
+  telemetry.SendMessage(SETUP_MSG);  // inform monitor we've started
 }
 
 void loop() {
-  while (bt.available()) {
-    // a byte is available to read over bluetooth
-    char readbyte = bt.read();
-
-    // register byte in the packet receiver
-    if (packetReceiver.AddByte(readbyte)) {
-      // packetReceiver.PrintPacketInfo();
-      
-      CommandID command = (CommandID) packetReceiver.GetPacketID();
-      uint16_t datalen = packetReceiver.GetPacketDataLength();
-      commands.Dispatch(command, rcvbuf, datalen);
-      
-      packetReceiver.Begin();  // restart packet receiver
-    }
-  }
-
+  commands.Tick();
   telemetry.Tick();
 }

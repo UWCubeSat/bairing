@@ -1,5 +1,18 @@
 #include "CommandProcessor.h"
 
+// no-op command, used as the default behavior for commands before being bound
+constexpr bool NOOPCMD (const char *data, uint16_t len) { return false; }
+
+CommandProcessor::CommandProcessor(SoftwareSerial& serial, PacketReceiver& receiver) : _serial(serial), _receiver(receiver) {
+  _resetCommand =     &NOOPCMD;
+  _beginLogCommand =  &NOOPCMD;
+  _endLogCommand =    &NOOPCMD;
+  _messageCommand =   &NOOPCMD;
+  _invalidCommand =   &NOOPCMD;
+  
+  _receiver.Begin();
+}
+
 void CommandProcessor::Bind(CommandID cmd, bool (*cmdCallback)(const char *, uint16_t)) {
   switch(cmd) {
     case CommandID::Reset:
@@ -14,8 +27,9 @@ void CommandProcessor::Bind(CommandID cmd, bool (*cmdCallback)(const char *, uin
     case CommandID::Message:
       _messageCommand = cmdCallback;
       break;
+    case CommandID::Invalid:
     default:
-      // invalid id
+      _invalidCommand = cmdCallback;
       break;
   }
 }
@@ -30,8 +44,26 @@ bool CommandProcessor::Dispatch(CommandID cmd, const char *data, uint16_t dataLe
       return _endLogCommand(data, dataLen);
     case CommandID::Message:
       return _messageCommand(data, dataLen);
+    case CommandID::Invalid:
     default:
-      // invalid id
+      dataLen = (uint16_t) cmd;
+      return _invalidCommand(data, dataLen);
       break;
+  }
+}
+
+void CommandProcessor::Tick() {
+  while (_serial.available()) {
+    char readbyte = _serial.read();
+    if (_receiver.AddByte(readbyte)) {
+      _receiver.PrintPacketInfo();
+      
+      CommandID command = (CommandID) _receiver.GetPacketID();
+      const char *data = _receiver.GetPacketData();
+      uint16_t datalen = _receiver.GetPacketDataLength();
+      Dispatch(command, data, datalen);
+      
+      _receiver.Begin();  // restart packet receiver
+    }
   }
 }

@@ -48,7 +48,7 @@ constexpr unsigned long DEFAULT_LOG_DELAY = 200;
 
 class BlueboyTelemetry {
  public:
-  // Initialize a packet sender to use the given serial stream and packet sender
+  // Initialize telemetry to use the given serial stream and packet sender
   BlueboyTelemetry(SoftwareSerial& serial, PacketSender& sender): _serial(serial), _sendDelay(DEFAULT_LOG_DELAY),
                                                                   _sender(sender), _lastSent(0), _logging(false) { }
 

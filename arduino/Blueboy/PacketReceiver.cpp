@@ -4,10 +4,10 @@
 constexpr bool DEBUG = false;
 
 void PacketReceiver::Begin() {
-  this->_offset = 0;
-  this->_plen = 0;
-  this->_id = 0;
-  this->_mode = Syncing;
+  _offset = 0;
+  _plen = 0;
+  _id = 0;
+  _mode = Syncing;
 
   if (DEBUG) Serial.println("Beginning packet receive");
 }
@@ -15,85 +15,90 @@ void PacketReceiver::Begin() {
 // adds the given byte to the buffer, returning true if adding the byte
 // completed the packet and false otherwise
 bool PacketReceiver::AddByte(uint8_t readbyte) {
-  if (this->_toRead == 0 && this->_mode != Syncing) {
+  if (_toRead == 0 && _mode != Syncing) {
     return false;
   }
-  switch (this->_mode) {
+  switch (_mode) {
     case Syncing:
-      this->_pattern = ((uint32_t) readbyte << 24) | (this->_pattern >> 8);
+      _pattern = ((uint32_t) readbyte << 24) | (_pattern >> 8);
 
       if (DEBUG) Serial.print("Syncing: ");
-      if (DEBUG) Serial.println(this->_pattern, HEX);
+      if (DEBUG) Serial.println(_pattern, HEX);
       
-      if (this->_pattern == this->_sync) {
-        this->_mode = Length;
-        this->_toRead = sizeof(this->_plen);
+      if (_pattern == _sync) {
+        _mode = Length;
+        _toRead = sizeof(_plen);
         if (DEBUG) Serial.println("Sync found, moving to Length");
       }
       break;
     case Length:
-      this->_plen = ((uint16_t) readbyte << 8) | (this->_plen >> 8);
-      this->_toRead--;
+      _plen = ((uint16_t) readbyte << 8) | (_plen >> 8);
+      _toRead--;
 
       if (DEBUG) Serial.print("Length: ");
-      if (DEBUG) Serial.println(this->_plen, HEX);
+      if (DEBUG) Serial.println(_plen, HEX);
       
-      if (this->_toRead == 0) {
-        if (this->_plen == 0) {
+      if (_toRead == 0) {
+        if (_plen == 0) {
           // invalid packet length, go back go back
-          this->_mode = Syncing;
+          _mode = Syncing;
           
           if (DEBUG) Serial.println("Received a packet length of 0, bad packet");
         } else {
           // we just added the last length field byte, move to data on next cycle
-          this->_toRead = this->_plen;
-          this->_mode = ID;
+          _toRead = _plen;
+          _mode = ID;
   
           if (DEBUG) Serial.println("Length complete, moving to ID");
         }
       }
       break;
     case ID:
-      this->_id = readbyte;
-      this->_toRead--;
-      if (this->_toRead == 0) {
-        // we received a packet with no data, we're done
+      _id = readbyte;
+      _toRead--;
+      if (_toRead == 0) {
+        // we received a packet with just an ID and no data, we're done
         if (DEBUG) Serial.println("Packet with no data detected, complete");
         return true;
       } else {
         if (DEBUG) Serial.println("ID complete, moving to Data");
-        this->_mode = Data;
+        _mode = Data;
       }
       break;
     case Data:
-      this->_dataBuf[this->_offset++] = readbyte;
-      this->_toRead--;
+      _dataBuf[_offset++] = readbyte;
+      _toRead--;
 
       if (DEBUG) Serial.print("Data: ");
       if (DEBUG) Serial.println(readbyte, HEX);
       
-      if (this->_toRead == 0) {
+      if (_toRead == 0) {
         // just added last data byte, we're done
         if (DEBUG) Serial.println("Data complete, packet complete");
         return true;
       }
       break;
     default:
+      // this shouldn't happen
       break;
   }
   return false;
 }
 
 bool PacketReceiver::Completed() {
-  return this->_toRead == 0;
+  return _toRead == 0;
+}
+
+const char *PacketReceiver::GetPacketData() {
+  return _dataBuf;
 }
 
 uint16_t PacketReceiver::GetPacketDataLength() {
-  return this->_plen - sizeof(this->_id);  // packet length minus id field
+  return _plen - sizeof(_id);  // packet length minus id field
 }
 
 uint8_t PacketReceiver::GetPacketID() {
-  return this->_id;
+  return _id;
 }
 
 void PacketReceiver::PrintPacketInfo() {

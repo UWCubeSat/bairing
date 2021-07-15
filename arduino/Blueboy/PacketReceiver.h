@@ -22,6 +22,9 @@ class PacketReceiver {
   
   // Return true iff the current packet is completed; i.e, there are no more bytes to receive
   bool Completed();
+
+  // Return the packet's data
+  const char *GetPacketData();
   
   // Return the 2-byte data length, which is the length of the data itself excluding the id
   uint16_t GetPacketDataLength();
