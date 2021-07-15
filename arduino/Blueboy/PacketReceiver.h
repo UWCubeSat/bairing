@@ -1,7 +1,7 @@
 #ifndef PACKET_RECEIVER_H_
 #define PACKET_RECEIVER_H_
 
-#include <stdint.h>
+#include <Arduino.h>
 
 // Receives packets in the form 
 // [Length: 2 bytes] [ID: 1 byte] [Data: Length - 1]
@@ -13,23 +13,23 @@ class PacketReceiver {
                                             _pattern(0), _plen(0), _id(0),
                                             _toRead(0), _offset(0), _mode(Length) { }
   
-  // Prepares to receive a new packet
+  // Prepare to receive a new packet
   void Begin();
   
-  // Adds the given byte to the buffer, returning true if adding the byte
+  // Add the given byte to the buffer, returning true if adding the byte
   // completed the packet and false otherwise
   bool AddByte(uint8_t byte);
   
-  // Returns true iff the current packet is completed; i.e, there are no more bytes to receive
+  // Return true iff the current packet is completed; i.e, there are no more bytes to receive
   bool Completed();
   
-  // Returns the 2-byte data length, which is the length of the data itself excluding the id
+  // Return the 2-byte data length, which is the length of the data itself excluding the id
   uint16_t GetPacketDataLength();
   
-  // Returns the ID byte
+  // Return the ID byte
   uint8_t GetPacketID();
 
-  // Prints information about the current packet, whether one ahs been received, the id, length and data
+  // Print information about the current packet, whether one ahs been received, the id, length and data
   void PrintPacketInfo();
  private:
   enum ReadMode { Syncing, Length, ID, Data};
