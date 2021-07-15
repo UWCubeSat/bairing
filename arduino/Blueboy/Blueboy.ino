@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
-#include "ReceivePacket.h"
-#include "SendPacket.h"
+#include "PacketReceiver.h"
+#include "PacketSender.h"
 
 const uint32_t SYNC_PATTERN = 0xDEADBEEF;
 
@@ -25,7 +25,8 @@ uint32_t pattern;        // last 4 bytes received, most recent in the most signi
 
 unsigned long lastTime;	 // time since last packet was sent
 
-ReceivePacket receivePacket = ReceivePacket(rcvbuf);
+PacketReceiver packetReceiver = PacketReceiver(rcvbuf, SYNC_PATTERN);
+PacketSender packetSender = PacketSender(sendbuf);
 
 // Command IDs
 enum class Command {
@@ -52,31 +53,33 @@ SoftwareSerial bt = SoftwareSerial(2, 3);  // rx on pin 2, tx on pin 3
 
 // Sends a string response packet, with a sync pattern followed by a length and string
 void SendMessagePacket(const char *str) {
-  SendPacket packet = SendPacket(sendbuf, (uint8_t) Telemetry::Message);
-  packet.AddStr(str, strlen(str));
+  // PacketSender packet = PacketSender(sendbuf, (uint8_t) Telemetry::Message);
+  packetSender.Begin((uint8_t) Telemetry::Message);
+  packetSender.AddStr(str);
   
   bt.write((char *) &SYNC_PATTERN, 4);
-  packet.Send(bt);
+  packetSender.Send(bt);
 }
 
 // Sends an attitude data packet
 void SendAttitudePacket() {
-  SendPacket packet = SendPacket(sendbuf, (uint8_t) Telemetry::Attitude);
+  // PacketSender packet = PacketSender(sendbuf, (uint8_t) Telemetry::Attitude);
+  packetSender.Begin((uint8_t) Telemetry::Attitude);
   
   struct AttitudeData hemisphere;
   hemisphere.magX = hemisphere.magY = hemisphere.magZ = 0;
   hemisphere.gyroX = hemisphere.gyroY = hemisphere.gyroZ = 1.5;
   hemisphere.accX = hemisphere.accY = hemisphere.accZ = 6;
-  packet.AddBuf((char *) &hemisphere, sizeof(hemisphere));
+  packetSender.AddBuf((char *) &hemisphere, sizeof(hemisphere));
 
   bt.write((char *) &SYNC_PATTERN, 4);
-  packet.Send(bt);
+  packetSender.Send(bt);
 }
 
 // process a packet that's just been received
-void ProcessPacket(ReceivePacket packet, char *data) {
-  Command id = (Command) receivePacket.GetPacketID();
-  uint16_t datalen = receivePacket.GetPacketDataLength();
+void ProcessPacket(PacketReceiver packet, char *data) {
+  Command id = (Command) packetReceiver.GetPacketID();
+  uint16_t datalen = packetReceiver.GetPacketDataLength();
 
   switch (id) {
     case Command::Reset:
@@ -124,20 +127,44 @@ void ProcessPacket(ReceivePacket packet, char *data) {
 void CheckReceiveByte() {
   if (bt.available()) {
     char readbyte = bt.read();
-    if (receivePacket.Completed()) {
+
+    if (packetReceiver.AddByte(readbyte)) {
+      uint16_t rcvbuflen = packetReceiver.GetPacketDataLength();
+      uint8_t id = packetReceiver.GetPacketID();
+
+      Serial.println("Packet received");
+      Serial.print("  Length: ");
+      Serial.println(rcvbuflen);
+      
+      Serial.print("  ID: ");
+      Serial.println(id);
+      
+      Serial.print("  Data: ");
+      for (int i = 0; i < rcvbuflen; i++) {
+        Serial.print(rcvbuf[i], HEX);
+        Serial.print(" ");
+      }
+      Serial.println();
+
+      ProcessPacket(packetReceiver, rcvbuf);
+
+      packetReceiver.Begin();  // restart packet receiver
+    }
+    
+    /*
+    if (packetReceiver.Completed()) {
      // we are not currently receiving a packet
       pattern = ((uint32_t) readbyte << 24) | (pattern >> 8);
       if (pattern == SYNC_PATTERN) {
         // Serial.println("Packet begin");
-        receivePacket.Begin();
+        packetReceiver.Begin();
       }
     } else {
-      if (receivePacket.AddByte(readbyte)) {
+      if (packetReceiver.AddByte(readbyte)) {
         // finished packet
-        uint16_t rcvbuflen = receivePacket.GetPacketDataLength();
-        uint8_t id = receivePacket.GetPacketID();
+        uint16_t rcvbuflen = packetReceiver.GetPacketDataLength();
+        uint8_t id = packetReceiver.GetPacketID();
 
-        /*
         Serial.println("Packet received");
         Serial.print("  Length: ");
         Serial.println(rcvbuflen);
@@ -151,14 +178,14 @@ void CheckReceiveByte() {
           Serial.print(" ");
         }
         Serial.println();
-        */
 
-        ProcessPacket(receivePacket, rcvbuf);
+        ProcessPacket(packetReceiver, rcvbuf);
     
         // reset sync pattern to prepare for the next pattern
         pattern = 0;
       }
     }
+    */
   }
 }
 
@@ -171,6 +198,8 @@ void setup() {
   lastTime = millis();
   
   strcpy(message, DEFAULT_MSG);
+
+  packetReceiver.Begin();
 }
 
 void loop() {
