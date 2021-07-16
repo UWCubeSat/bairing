@@ -2,7 +2,7 @@
 #define COMMAND_PROCESSOR_H_
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
+#include <AltSoftSerial.h>
 #include "PacketReceiver.h"
 
 // Command IDs
@@ -17,7 +17,7 @@ enum class CommandID {
 class CommandProcessor {
  public:
   // Initialize telemetry to use the given serial stream and packet sender
-  CommandProcessor(SoftwareSerial& serial, uint32_t sync);
+  CommandProcessor(AltSoftSerial& serial, uint32_t sync);
 
   // Update the command processor
   void Tick();
@@ -29,10 +29,10 @@ class CommandProcessor {
   // Call the function bound to the given command, returning true on success and false on failure
   bool Dispatch(CommandID cmd, const char *data, uint16_t dataLen);
  private:
-  SoftwareSerial& _serial;
+  AltSoftSerial& _serial;
 
   
-  char _rcvbuf[256];            // buffer containing data received from packets (without sync, length, id, etc.)
+  char _rcvbuf[128];            // buffer containing data received from packets (without sync, length, id, etc.)
   PacketReceiver _receiver;     // internal packet receiver
   
   bool (*_resetCommand)(const char *data, uint16_t len);      // reset command callback

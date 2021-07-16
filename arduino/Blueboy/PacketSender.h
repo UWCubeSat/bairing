@@ -2,7 +2,7 @@
 #define SEND_PACKET_H_
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
+#include <AltSoftSerial.h>
 
 class PacketSender {
  public:
@@ -31,7 +31,7 @@ class PacketSender {
   int AddStr(const char *str);
   
   // Send the built packet over serial, with the proper ID and length
-  int Send(SoftwareSerial& serial);
+  int Send(AltSoftSerial& serial);
  private:
   char *    _buf;
   uint32_t  _sync;

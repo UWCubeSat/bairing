@@ -2,14 +2,17 @@
 #define BLUEBOY_TELEMETRY_H_
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
+#include <AltSoftSerial.h>
 #include "PacketSender.h"
+#include "OneUDriver.h"
+
+constexpr uint8_t ONEU_ADDRESS = 0x3A;
 
 // Telemetry IDs
 enum class TelemetryID {
   AttitudeRaw = 0x01,
   AttitudeQuaternion = 0x02,
-  AttitudeEuler = 0x02,
+  AttitudeEuler = 0x03,
   Message = 0x69,
 };
 
@@ -49,7 +52,7 @@ constexpr unsigned long DEFAULT_LOG_DELAY = 200;
 class BlueboyTelemetry {
  public:
   // Initialize telemetry to use the given serial stream and sync pattern
-  BlueboyTelemetry(SoftwareSerial& serial, uint32_t sync);
+  BlueboyTelemetry(AltSoftSerial& serial, uint32_t sync);
 
   // Update telemetry
   void Tick();
@@ -66,10 +69,12 @@ class BlueboyTelemetry {
   // Send a raw attitude data packet with the given attitude
   void SendAttitudeRaw(const struct AttitudeDataRaw& data);
  private:
-  SoftwareSerial& _serial;
+  AltSoftSerial& _serial;
   
-  char _sendbuf[256];           // send packet buffer, used to build a packet
+  char _sendbuf[128];           // send packet buffer, used to build a packet
   PacketSender _sender;         // internal packet sender
+
+  OneUDriver _oneU;             // driver for attached 1U system
   
   unsigned long _sendDelay;     // time in milliseconds between sending data log packets
   unsigned long _lastSent;      // time that the last data log packet was sent

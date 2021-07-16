@@ -40,7 +40,7 @@ int PacketSender::AddStr(const char *str) {
 }
 
 // writes length to buffer at the start, sends full packet over given serial
-int PacketSender::Send(SoftwareSerial& serial) {
+int PacketSender::Send(AltSoftSerial& serial) {
   *((uint32_t *) _buf) = _sync;  // add sync pattern
   
   *((uint16_t *) (_buf + sizeof(_sync))) = _len;  // add length
