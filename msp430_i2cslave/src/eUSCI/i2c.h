@@ -5,7 +5,6 @@
  * with an interface loosely based on Arduino's Wire.h
  *
  * TODO
- *   - Slave write
  *   - Master read
  *   - Master write
  *   - Toggling asynchronous <-> synchronous
@@ -17,7 +16,6 @@
 
 #include <cinttypes>
 #include <msp430plus.h>
-#include "eusci.h"
 #include "util/SimpleQueue.h"
 
 using util::SimpleQueue;

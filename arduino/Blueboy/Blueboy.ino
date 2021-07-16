@@ -1,8 +1,12 @@
 #include <SoftwareSerial.h>
+#include <Wire.h>
+
 #include "PacketReceiver.h"
 #include "PacketSender.h"
 #include "CommandProcessor.h"
 #include "BlueboyTelemetry.h"
+
+#include "OneUDriver.h"
 
 const int RX_PIN = 2;
 const int TX_PIN = 3;
@@ -25,6 +29,9 @@ SoftwareSerial bt(RX_PIN, TX_PIN);              // rx on pin 2, tx on pin 3
 
 CommandProcessor commands(bt, SYNC_PATTERN);    // command processor
 BlueboyTelemetry telemetry(bt, SYNC_PATTERN);   // telemetry sender
+
+OneUDriver oneU(0x3A);
+OneUData attitude;
 
 bool ResetCommand(const char *data, uint16_t len) {
   telemetry.SendMessage(RESET_MSG);
@@ -72,6 +79,7 @@ void setup() {
   
   Serial.begin(9600);
   bt.begin(57600);
+  Wire.begin();
   
   strcpy(message, DEFAULT_MSG);
 
@@ -86,6 +94,34 @@ void setup() {
 }
 
 void loop() {
-  commands.Tick();
-  telemetry.Tick();
+  // commands.Tick();
+  // telemetry.Tick();
+  Serial.println("----------------------------------");
+  if (oneU.ReadData(OneUDataType::Mag, &attitude)) {
+    Serial.print("  mag x: ");
+    Serial.println(attitude.magnetic_field.x);
+    Serial.print("  mag y: ");
+    Serial.println(attitude.magnetic_field.y);
+    Serial.print("  mag z: ");
+    Serial.println(attitude.magnetic_field.z);
+  }
+  if (oneU.ReadData(OneUDataType::Acc, &attitude)) {
+    Serial.println();
+    Serial.print("  acc x: ");
+    Serial.println(attitude.acceleration.x);
+    Serial.print("  acc y: ");
+    Serial.println(attitude.acceleration.y);
+    Serial.print("  acc z: ");
+    Serial.println(attitude.acceleration.z);
+  }
+  if (oneU.ReadData(OneUDataType::Gyro, &attitude)) {
+    Serial.println();
+    Serial.print("  gyro x: ");
+    Serial.println(attitude.angular_velocity.x);
+    Serial.print("  gyro y: ");
+    Serial.println(attitude.angular_velocity.y);
+    Serial.print("  gyro z: ");
+    Serial.println(attitude.angular_velocity.z);
+  }
+  delay(1000);
 }
