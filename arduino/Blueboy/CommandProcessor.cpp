@@ -3,7 +3,7 @@
 // no-op command, used as the default behavior for commands before being bound
 constexpr bool NOOPCMD (const char *data, uint16_t len) { return false; }
 
-CommandProcessor::CommandProcessor(SoftwareSerial& serial, PacketReceiver& receiver) : _serial(serial), _receiver(receiver) {
+CommandProcessor::CommandProcessor(SoftwareSerial& serial, uint32_t sync) : _serial(serial), _receiver(PacketReceiver(_rcvbuf, sync)) {
   _resetCommand =     &NOOPCMD;
   _beginLogCommand =  &NOOPCMD;
   _endLogCommand =    &NOOPCMD;

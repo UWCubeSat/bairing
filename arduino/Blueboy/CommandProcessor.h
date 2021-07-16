@@ -17,7 +17,7 @@ enum class CommandID {
 class CommandProcessor {
  public:
   // Initialize telemetry to use the given serial stream and packet sender
-  CommandProcessor(SoftwareSerial& serial, PacketReceiver& receiver);
+  CommandProcessor(SoftwareSerial& serial, uint32_t sync);
 
   // Update the command processor
   void Tick();
@@ -30,7 +30,10 @@ class CommandProcessor {
   bool Dispatch(CommandID cmd, const char *data, uint16_t dataLen);
  private:
   SoftwareSerial& _serial;
-  PacketReceiver& _receiver;
+
+  
+  char _rcvbuf[256];            // buffer containing data received from packets (without sync, length, id, etc.)
+  PacketReceiver _receiver;     // internal packet receiver
   
   bool (*_resetCommand)(const char *data, uint16_t len);      // reset command callback
   bool (*_beginLogCommand)(const char *data, uint16_t len);   // begin logging command callback

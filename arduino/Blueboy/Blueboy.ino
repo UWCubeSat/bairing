@@ -12,25 +12,19 @@ const uint32_t SYNC_PATTERN = 0xDEADBEEF;
 
 // packet messages
 const char *DEFAULT_MSG = "see how the brain plays around";
-
 const char *SETUP_MSG = "Initialized system";
 const char *BEGIN_LOG_MSG = "Began logging";
 const char *END_LOG_MSG = "Ended logging";
 const char *RESET_MSG = "Resetting system...";
 const char *UNRECOGNIZED_MSG = "Unrecognized command";
 
-char sendbuf[256];		   // send packet buffer, used to build a packet
-char rcvbuf[256];		     // buffer containing data received from packets (without sync, length, id, etc.)
 char strbuf[128];        // general-purpose string buffer
 char message[32];        // stored message to be echoed on command
 
-SoftwareSerial bt = SoftwareSerial(RX_PIN, TX_PIN);  // rx on pin 2, tx on pin 3
+SoftwareSerial bt(RX_PIN, TX_PIN);              // rx on pin 2, tx on pin 3
 
-PacketReceiver packetReceiver = PacketReceiver(rcvbuf, SYNC_PATTERN);
-PacketSender packetSender = PacketSender(sendbuf, SYNC_PATTERN);
-
-CommandProcessor commands = CommandProcessor(bt, packetReceiver);
-BlueboyTelemetry telemetry = BlueboyTelemetry(bt, packetSender);
+CommandProcessor commands(bt, SYNC_PATTERN);    // command processor
+BlueboyTelemetry telemetry(bt, SYNC_PATTERN);   // telemetry sender
 
 bool ResetCommand(const char *data, uint16_t len) {
   telemetry.SendMessage(RESET_MSG);
@@ -87,8 +81,6 @@ void setup() {
   commands.Bind(CommandID::Message,   &MessageCommand);
 
   // TODO initialize peripherals here
-
-  packetReceiver.Begin();  // receive first packet
 
   telemetry.SendMessage(SETUP_MSG);  // inform monitor we've started
 }

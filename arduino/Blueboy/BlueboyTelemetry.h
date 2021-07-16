@@ -48,9 +48,8 @@ constexpr unsigned long DEFAULT_LOG_DELAY = 200;
 
 class BlueboyTelemetry {
  public:
-  // Initialize telemetry to use the given serial stream and packet sender
-  BlueboyTelemetry(SoftwareSerial& serial, PacketSender& sender): _serial(serial), _sendDelay(DEFAULT_LOG_DELAY),
-                                                                  _sender(sender), _lastSent(0), _logging(false) { }
+  // Initialize telemetry to use the given serial stream and sync pattern
+  BlueboyTelemetry(SoftwareSerial& serial, uint32_t sync);
 
   // Update telemetry
   void Tick();
@@ -68,10 +67,13 @@ class BlueboyTelemetry {
   void SendAttitudeRaw(const struct AttitudeDataRaw& data);
  private:
   SoftwareSerial& _serial;
-  PacketSender& _sender;
-  unsigned long _sendDelay;   // time in milliseconds between sending data log packets
-  unsigned long _lastSent;    // time that the last data log packet was sent
-  bool _logging;              // true if Blueboy is currently logging data
+  
+  char _sendbuf[256];           // send packet buffer, used to build a packet
+  PacketSender _sender;         // internal packet sender
+  
+  unsigned long _sendDelay;     // time in milliseconds between sending data log packets
+  unsigned long _lastSent;      // time that the last data log packet was sent
+  bool _logging;                // true if Blueboy is currently logging data
 };
 
 #endif

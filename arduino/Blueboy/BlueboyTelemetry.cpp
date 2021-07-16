@@ -1,5 +1,12 @@
 #include "BlueboyTelemetry.h"
 
+BlueboyTelemetry::BlueboyTelemetry(SoftwareSerial& serial, uint32_t sync): _serial(serial),
+                                                                           _sender(PacketSender(_sendbuf, sync)) {
+  _sendDelay = DEFAULT_LOG_DELAY;
+  _lastSent = 0;
+  _logging = false;
+}
+
 void BlueboyTelemetry::BeginLogging() {
   _logging = true;
 }
