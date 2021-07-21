@@ -1,12 +1,32 @@
 COMMAND BLUEBOY RESET LITTLE_ENDIAN "Reset system"
-  APPEND_ID_PARAMETER ID 8 UINT 1 1 1 "Command ID"
-
-COMMAND BLUEBOY BEGINLOG LITTLE_ENDIAN "Begin logging data"
-  APPEND_ID_PARAMETER ID 8 UINT 2 2 2 "Command ID"
-
-COMMAND BLUEBOY ENDLOG LITTLE_ENDIAN "Stop logging data"
-  APPEND_ID_PARAMETER ID 8 UINT 4 4 4 "Command ID"
+  APPEND_ID_PARAMETER ID 8 UINT 0 0 0 "Command ID"
 
 COMMAND BLUEBOY MSGECHO LITTLE_ENDIAN "Echo and update stored string on Blueboy"
-  APPEND_ID_PARAMETER ID 8 UINT 105 105 105 "Command ID"
+  APPEND_ID_PARAMETER ID 8 UINT 1 1 1 "Command ID"
   APPEND_PARAMETER MSG 0 STRING "" "Message"
+
+#=================================================================================
+
+COMMAND BLUEBOY BEGINOWNATT LITTLE_ENDIAN "Begin logging own attitude data"
+  APPEND_ID_PARAMETER ID 8 UINT 16 16 16 "Command ID"
+  APPEND_ID_PARAMETER PERIOD 16 UINT 0 65535 100 "Period between samples"
+  APPEND_ID_PARAMETER TYPE 8 UINT 0 2 0 "Data type"	# 0: raw, 1: euler, 2: quaternion
+
+COMMAND BLUEBOY ENDOWNATT LITTLE_ENDIAN "Stop logging own attitude data"
+  APPEND_ID_PARAMETER ID 8 UINT 17 17 17 "Command ID"
+
+COMMAND BLUEBOY ENDOWNALL LITTLE_ENDIAN "Stop logging all own data"
+  APPEND_ID_PARAMETER ID 8 UINT 31 31 31 "Command ID"
+
+#=================================================================================
+
+COMMAND BLUEBOY BEGINTESTATT LITTLE_ENDIAN "Begin logging test attitude data"
+  APPEND_ID_PARAMETER ID 8 UINT 32 32 32 "Command ID"
+  APPEND_ID_PARAMETER PERIOD 16 UINT 0 65535 100 "Period between samples"
+  APPEND_ID_PARAMETER TYPE 8 UINT 0 2 0 "Data type"	# 0: raw, 1: euler, 2: quaternion
+
+COMMAND BLUEBOY ENDTESTATT LITTLE_ENDIAN "Stop logging test attitude data"
+  APPEND_ID_PARAMETER ID 8 UINT 33 33 33 "Command ID"
+
+COMMAND BLUEBOY ENDTESTALL LITTLE_ENDIAN "Stop logging all test data"
+  APPEND_ID_PARAMETER ID 8 UINT 47 47 47 "Command ID"

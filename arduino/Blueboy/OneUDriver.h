@@ -5,22 +5,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-
-struct Vector {
-  union {
-    struct {
-      float x;
-      float y;
-      float z;
-    };
-    struct {
-      float azimuth;
-      float pitch;
-      float roll;
-    };
-  };
-  char __padding[4];  // get to a total size of 16 bytes
-};
+#include <Adafruit_Sensor.h>
 
 struct Quaternion {
   float x;
@@ -31,13 +16,12 @@ struct Quaternion {
 
 struct OneUData {
   union {
-    char data[16];                    // raw bytes
-    struct Vector acceleration;       // m/s^2
-    struct Vector magnetic_field;     // uT
-    struct Vector angular_velocity;   // rad/s
+    sensors_vec_t magnetic;           // uT
+    sensors_vec_t acceleration;       // m/s^2
+    sensors_vec_t gyro;               // rad/s
     
     union Orientation {
-      struct Vector euler;            // radians
+      sensors_vec_t euler;            // radians
       struct Quaternion quaternion;   // ???
     } orientation;
   };
@@ -56,7 +40,7 @@ class OneUDriver {
  public: 
   OneUDriver(uint8_t address): _address(address) { }
 
-  void Initialize();
+  bool Initialize();
   bool ReadData(OneUDataType type, struct OneUData *data);
  private:
   uint8_t _address;

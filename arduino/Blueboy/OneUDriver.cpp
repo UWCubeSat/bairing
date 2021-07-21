@@ -2,8 +2,9 @@
 
 constexpr uint8_t REQUEST_BASE =  0x10;
 
-void OneUDriver::Initialize() {
+bool OneUDriver::Initialize() {
   // initialize here!
+  return true;
 }
 
 bool OneUDriver::ReadData(OneUDataType type, struct OneUData *data) {

@@ -1,35 +1,46 @@
 #include "CommandProcessor.h"
 
 // no-op command, used as the default behavior for commands before being bound
-constexpr bool NOOPCMD (const char *data, uint16_t len) { return false; }
+constexpr bool NOOPCMD (CommandID cmd, const char *data, uint16_t len) { return false; }
 
 CommandProcessor::CommandProcessor(AltSoftSerial& serial, uint32_t sync) : _serial(serial), _receiver(PacketReceiver(_rcvbuf, sync)) {
-  _resetCommand =     &NOOPCMD;
-  _beginLogCommand =  &NOOPCMD;
-  _endLogCommand =    &NOOPCMD;
-  _messageCommand =   &NOOPCMD;
-  _invalidCommand =   &NOOPCMD;
+  _reset =               &NOOPCMD;
+  _echo =                &NOOPCMD;
+  _beginOwnAttitude =    &NOOPCMD;
+  _endOwnAttitude =      &NOOPCMD;
+  _beginTestAttitude =   &NOOPCMD;
+  _endTestAttitude =     &NOOPCMD;
+  _invalid =             &NOOPCMD;
   
   _receiver.Begin();
 }
 
-void CommandProcessor::Bind(CommandID cmd, bool (*cmdCallback)(const char *, uint16_t)) {
+void CommandProcessor::Bind(CommandID cmd, CommandCallback cmdCallback) {
   switch(cmd) {
     case CommandID::Reset:
-      _resetCommand = cmdCallback;
+      _reset = cmdCallback;
       break;
-    case CommandID::BeginLog:
-      _beginLogCommand = cmdCallback;
+    case CommandID::Echo:
+      _echo = cmdCallback;
       break;
-    case CommandID::EndLog:
-      _endLogCommand = cmdCallback;
+
+    case CommandID::BeginOwnAttitude:
+      _beginOwnAttitude = cmdCallback;
       break;
-    case CommandID::Message:
-      _messageCommand = cmdCallback;
+    case CommandID::EndOwnAttitude:
+      _endOwnAttitude = cmdCallback;
       break;
+
+    case CommandID::BeginTestAttitude:
+      _beginTestAttitude = cmdCallback;
+      break;
+    case CommandID::EndTestAttitude:
+      _endTestAttitude = cmdCallback;
+      break;
+
     case CommandID::Invalid:
     default:
-      _invalidCommand = cmdCallback;
+      _invalid = cmdCallback;
       break;
   }
 }
@@ -37,17 +48,29 @@ void CommandProcessor::Bind(CommandID cmd, bool (*cmdCallback)(const char *, uin
 bool CommandProcessor::Dispatch(CommandID cmd, const char *data, uint16_t dataLen) {
   switch(cmd) {
     case CommandID::Reset:
-      return _resetCommand(data, dataLen);
-    case CommandID::BeginLog:
-      return _beginLogCommand(data, dataLen);
-    case CommandID::EndLog:
-      return _endLogCommand(data, dataLen);
-    case CommandID::Message:
-      return _messageCommand(data, dataLen);
+      return _reset(cmd, data, dataLen);
+      break;
+    case CommandID::Echo:
+      return _echo(cmd, data, dataLen);
+      break;
+
+    case CommandID::BeginOwnAttitude:
+      return _beginOwnAttitude(cmd, data, dataLen);
+      break;
+    case CommandID::EndOwnAttitude:
+      return _endOwnAttitude(cmd, data, dataLen);
+      break;
+
+    case CommandID::BeginTestAttitude:
+      return _beginTestAttitude(cmd, data, dataLen);
+      break;
+    case CommandID::EndTestAttitude:
+      return _endTestAttitude(cmd, data, dataLen);
+      break;
+
     case CommandID::Invalid:
     default:
-      dataLen = (uint16_t) cmd;
-      return _invalidCommand(data, dataLen);
+      return _invalid(cmd, data, dataLen);
       break;
   }
 }
@@ -58,10 +81,10 @@ void CommandProcessor::Tick() {
     if (_receiver.AddByte(readbyte)) {
       _receiver.PrintPacketInfo();
       
-      CommandID command = (CommandID) _receiver.GetPacketID();
+      CommandID cmd = (CommandID) _receiver.GetPacketID();
       const char *data = _receiver.GetPacketData();
       uint16_t datalen = _receiver.GetPacketDataLength();
-      Dispatch(command, data, datalen);
+      Dispatch(cmd, data, datalen);
       
       _receiver.Begin();  // restart packet receiver
     }

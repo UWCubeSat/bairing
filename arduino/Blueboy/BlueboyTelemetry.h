@@ -4,81 +4,75 @@
 #include <Arduino.h>
 #include <AltSoftSerial.h>
 #include "PacketSender.h"
-#include "OneUDriver.h"
 
-constexpr uint8_t ONEU_ADDRESS = 0x3A;
+#include "BlueboyPeripherals.h"
 
 // Telemetry IDs
 enum class TelemetryID {
-  AttitudeRaw = 0x01,
-  AttitudeQuaternion = 0x02,
-  AttitudeEuler = 0x03,
-  Message = 0x69,
+  Status =  0x00,
+  Message = 0x01,
+
+  OwnAttitudeRaw =        0x10,
+  OwnAttitudeEuler =      0x11,
+  OwnAttitudeQuaternion = 0x12,
+
+  TestAttitudeRaw =        0x10,
+  TestAttitudeEuler =      0x11,
+  TestAttitudeQuaternion = 0x12,
 };
 
-// Raw attitude data in 3 ways:
-//   - Access as array of 9 floats with data
-//   - Access each component as an array of 3 floats with mag/gyro/acc
-//   - Access each individual float by name
-struct AttitudeDataRaw {
-  union {
-    float data[9];
-    struct {
-      union {
-        float mag[3];
-        struct {
-          float magX, magY, magZ;     // magnetometor, microteslas
-        };
-      };
-      union {
-        float gyro[3];
-        struct {
-          float gyroX, gyroY, gyroZ;  // gyroscope, rad/s
-        };
-      };
-      union {
-        float acc[3];
-        struct {
-          float accX, accY, accZ;     // accelerometer, m/s^2
-        };
-      };
-    };
-  };
+struct TelemetrySettings {
+  AttitudeMode mode;          // attitude logging mode
+  unsigned long sendDelay;    // time in milliseconds between sending data log packets
+  unsigned long lastSent;     // time that the last data log packet was sent
+  bool logging;               // true if currently logging data
 };
 
 // time in milliseconds between log data sending
 constexpr unsigned long DEFAULT_LOG_DELAY = 200;
 
+// attitude data mode
+constexpr AttitudeMode DEFAULT_ATTITUDE_MODE = AttitudeMode::Raw;
+
 class BlueboyTelemetry {
  public:
+  enum Device {
+    Own = 0x01,
+    Test = 0x02
+  };
+ 
   // Initialize telemetry to use the given serial stream and sync pattern
   BlueboyTelemetry(AltSoftSerial& serial, uint32_t sync);
+
+  // Initializes peripherals
+  bool InitializePeripherals();
 
   // Update telemetry
   void Tick();
 
-  // Enable attitude logging
-  void BeginLogging();
+  // Sets the log period in milliseconds of the given device
+  void SetLogPeriod(Device dev, unsigned long period);
 
-  // Disable attitude logging
-  void EndLogging();
+  // Enable attitude logging on the device with the given mode
+  void BeginLogging(Device dev, AttitudeMode mode);
+
+  // Disable attitude logging on the device
+  void EndLogging(Device dev);
 
   // Send a message packet with the given message
   void SendMessage(const char *str);
 
-  // Send a raw attitude data packet with the given attitude
-  void SendAttitudeRaw(const struct AttitudeDataRaw& data);
+  // Send an attitude packet belonging to the given device with the given mode
+  void SendAttitude(Device dev, AttitudeMode mode, const struct AttitudeData& data);
  private:
   AltSoftSerial& _serial;
+
+  BlueboyPeripherals _peripherals;
   
   char _sendbuf[128];           // send packet buffer, used to build a packet
   PacketSender _sender;         // internal packet sender
 
-  OneUDriver _oneU;             // driver for attached 1U system
-  
-  unsigned long _sendDelay;     // time in milliseconds between sending data log packets
-  unsigned long _lastSent;      // time that the last data log packet was sent
-  bool _logging;                // true if Blueboy is currently logging data
+  struct TelemetrySettings _settings[2];
 };
 
 #endif

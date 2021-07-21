@@ -1,9 +1,15 @@
+TELEMETRY BLUEBOY BMSG LITTLE_ENDIAN "Blueboy status"
+  APPEND_ID_ITEM ID 8 UINT 0 "Status Identifier"
+  APPEND_ITEM STAT 8 UINT "Battery percentage"
+
 TELEMETRY BLUEBOY BMSG LITTLE_ENDIAN "Blueboy message"
-  APPEND_ID_ITEM ID 8 UINT 105 "Message Identifier"
+  APPEND_ID_ITEM ID 8 UINT 1 "Message Identifier"
   APPEND_ITEM MSG 0 STRING "Message"
 
-TELEMETRY BLUEBOY ATTITUDE LITTLE_ENDIAN "Attitude data"
-  APPEND_ID_ITEM ID 8 UINT 1 "Telemetry Identifier"
+#============================================================================
+
+TELEMETRY BLUEBOY OWNATTRAW LITTLE_ENDIAN "Own raw attitude data"
+  APPEND_ID_ITEM ID 8 UINT 16 "Attitude Identifier"
   APPEND_ITEM MAGX 32 FLOAT "Magnetometer X"
   APPEND_ITEM MAGY 32 FLOAT "Magnetometer Y"
   APPEND_ITEM MAGZ 32 FLOAT "Magnetometer Z"
@@ -13,4 +19,43 @@ TELEMETRY BLUEBOY ATTITUDE LITTLE_ENDIAN "Attitude data"
   APPEND_ITEM ACCX 32 FLOAT "Accelerometer X"
   APPEND_ITEM ACCY 32 FLOAT "Accelerometer Y"
   APPEND_ITEM ACCZ 32 FLOAT "Accelerometer Z"
-  
+
+TELEMETRY BLUEBOY OWNATTEULER LITTLE_ENDIAN "Own euler attitude data"
+  APPEND_ID_ITEM ID 8 UINT 17 "Attitude Identifier"
+  APPEND_ITEM PITCH 32 FLOAT "Pitch"
+  APPEND_ITEM ROLL 32 FLOAT "Roll"
+  APPEND_ITEM YAW 32 FLOAT "Yaw"
+
+TELEMETRY BLUEBOY OWNATTQUAT LITTLE_ENDIAN "Own quaternion attitude data"
+  APPEND_ID_ITEM ID 8 UINT 18 "Attitude Identifier"
+  APPEND_ITEM X 32 FLOAT "X"
+  APPEND_ITEM Y 32 FLOAT "Y"
+  APPEND_ITEM Z 32 FLOAT "Z"
+  APPEND_ITEM W 32 FLOAT "W"
+
+#============================================================================
+
+TELEMETRY BLUEBOY TESTATTRAW LITTLE_ENDIAN "Test raw attitude data"
+  APPEND_ID_ITEM ID 8 UINT 32 "Attitude Identifier"
+  APPEND_ITEM MAGX 32 FLOAT "Magnetometer X"
+  APPEND_ITEM MAGY 32 FLOAT "Magnetometer Y"
+  APPEND_ITEM MAGZ 32 FLOAT "Magnetometer Z"
+  APPEND_ITEM GYROX 32 FLOAT "Gyroscope X"
+  APPEND_ITEM GYROY 32 FLOAT "Gyroscope Y"
+  APPEND_ITEM GYROZ 32 FLOAT "Gyroscope Z"
+  APPEND_ITEM ACCX 32 FLOAT "Accelerometer X"
+  APPEND_ITEM ACCY 32 FLOAT "Accelerometer Y"
+  APPEND_ITEM ACCZ 32 FLOAT "Accelerometer Z"
+
+TELEMETRY BLUEBOY TESTATTEULER LITTLE_ENDIAN "Test euler attitude data"
+  APPEND_ID_ITEM ID 8 UINT 33 "Attitude Identifier"
+  APPEND_ITEM PITCH 32 FLOAT "Pitch"
+  APPEND_ITEM ROLL 32 FLOAT "Roll"
+  APPEND_ITEM YAW 32 FLOAT "Yaw"
+
+TELEMETRY BLUEBOY TESTATTQUAT LITTLE_ENDIAN "Test quaternion attitude data"
+  APPEND_ID_ITEM ID 8 UINT 34 "Attitude Identifier"
+  APPEND_ITEM X 32 FLOAT "X"
+  APPEND_ITEM Y 32 FLOAT "Y"
+  APPEND_ITEM Z 32 FLOAT "Z"
+  APPEND_ITEM W 32 FLOAT "W"
