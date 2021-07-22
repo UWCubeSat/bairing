@@ -36,11 +36,6 @@ constexpr AttitudeMode DEFAULT_ATTITUDE_MODE = AttitudeMode::Raw;
 
 class BlueboyTelemetry {
  public:
-  enum Device {
-    Own = 0x01,
-    Test = 0x02
-  };
- 
   // Initialize telemetry to use the given serial stream and sync pattern
   BlueboyTelemetry(AltSoftSerial& serial, uint32_t sync);
 

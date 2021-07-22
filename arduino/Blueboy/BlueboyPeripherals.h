@@ -27,15 +27,22 @@ enum class AttitudeMode {
   Quaternion = 2
 };
 
+enum class Device {
+  Own = 0x01,
+  Test = 0x02
+};
+
 class BlueboyPeripherals {
  public:
   BlueboyPeripherals();
   
   bool Initialize();
 
+  bool ReadRaw(Device dev, struct AttitudeData *data);
   bool ReadOwnRaw(struct AttitudeData *data);
   bool ReadTestRaw(struct AttitudeData *data);
 
+  bool ReadOrientation(Device dev, struct AttitudeData *data);
   bool ReadOwnOrientation(struct AttitudeData *data);
   bool ReadTestOrientation(struct AttitudeData *data);
   

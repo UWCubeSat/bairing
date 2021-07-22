@@ -30,6 +30,17 @@ bool BlueboyPeripherals::Initialize() {
   return true;
 }
 
+bool BlueboyPeripherals::ReadRaw(Device dev, struct AttitudeData *data) {
+  switch (dev) {
+    case Device::Own:
+      return ReadOwnRaw(data);
+    case Device::Test:
+      return ReadTestRaw(data);
+    default:
+      return false;
+  }
+}
+
 bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
   sensors_event_t mag;
   sensors_event_t accel;
@@ -64,6 +75,16 @@ bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {
   data->raw.gyro = raw.gyro;
   
   return true;
+}
+
+bool BlueboyPeripherals::ReadOrientation(Device dev, struct AttitudeData *data) {
+  switch (dev) {
+    case Device::Own:
+      return ReadOwnOrientation(data);
+    case Device::Test:
+      return ReadTestOrientation(data);
+  }
+  return false;
 }
 
 bool BlueboyPeripherals::ReadOwnOrientation(struct AttitudeData *data) {

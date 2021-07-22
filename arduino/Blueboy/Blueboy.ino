@@ -63,7 +63,7 @@ bool BeginLogCommand(CommandID cmd, const char *data, uint16_t len) {
 
   if (len >= 2) {
     period = *((uint16_t *) (data));  // interpret data as a pointer to a short, then dereference it
-    telemetry.SetLogPeriod((BlueboyTelemetry::Device) dev, (unsigned long) period);
+    telemetry.SetLogPeriod((Device) dev, (unsigned long) period);
     Serial.print("  period: ");
     Serial.println(period);
   } else {
@@ -77,7 +77,7 @@ bool BeginLogCommand(CommandID cmd, const char *data, uint16_t len) {
     Serial.println(mode);
   }
   
-  telemetry.BeginLogging((BlueboyTelemetry::Device) dev, (AttitudeMode) mode);
+  telemetry.BeginLogging((Device) dev, (AttitudeMode) mode);
   return true;
 }
 
@@ -89,7 +89,7 @@ bool EndLogCommand(CommandID cmd, const char *data, uint16_t len) {
   Serial.print("  dev: ");
   Serial.println(dev);
   
-  telemetry.EndLogging((BlueboyTelemetry::Device) dev);
+  telemetry.EndLogging((Device) dev);
   return true;
 }
 

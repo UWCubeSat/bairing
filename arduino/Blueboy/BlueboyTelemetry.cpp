@@ -75,25 +75,16 @@ void BlueboyTelemetry::Tick() {
   for (int i = 0; i < 2; i++) {
     if (_settings[i].logging && (millis() - _settings[i].lastSent >= _settings[i].sendDelay)) {
       struct AttitudeData data;
+
+      Device dev = (Device) (i + 1);
   
       // send attitude
       if (_settings[i].mode == AttitudeMode::Raw) {
-        float val = millis() / 1000.0F;
         
-        data.raw.magnetic.x = val;
-        data.raw.magnetic.y = val;
-        data.raw.magnetic.z = val;
-        
-        data.raw.acceleration.x = val;
-        data.raw.acceleration.y = val;
-        data.raw.acceleration.z = val;
-        
-        data.raw.gyro.x = val;
-        data.raw.gyro.y = val;
-        data.raw.gyro.z = val;
+        _peripherals.ReadRaw(dev, &data);
       }
   
-      SendAttitude((Device) (i + 1), _settings[i].mode, data);
+      SendAttitude(dev, _settings[i].mode, data);
       
       _settings[i].lastSent = millis();
     }
