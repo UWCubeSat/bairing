@@ -78,17 +78,19 @@ void BlueboyTelemetry::Tick() {
   
       // send attitude
       if (_settings[i].mode == AttitudeMode::Raw) {
-        data.raw.magnetic.x = 6.9F;
-        data.raw.magnetic.y = 6.9F;
-        data.raw.magnetic.z = 6.9F;
+        float val = millis() / 1000.0F;
         
-        data.raw.acceleration.x = 6.9F;
-        data.raw.acceleration.y = 6.9F;
-        data.raw.acceleration.z = 6.9F;
+        data.raw.magnetic.x = val;
+        data.raw.magnetic.y = val;
+        data.raw.magnetic.z = val;
         
-        data.raw.gyro.x = 6.9F;
-        data.raw.gyro.y = 6.9F;
-        data.raw.gyro.z = 6.9F;
+        data.raw.acceleration.x = val;
+        data.raw.acceleration.y = val;
+        data.raw.acceleration.z = val;
+        
+        data.raw.gyro.x = val;
+        data.raw.gyro.y = val;
+        data.raw.gyro.z = val;
       }
   
       SendAttitude((Device) (i + 1), _settings[i].mode, data);
