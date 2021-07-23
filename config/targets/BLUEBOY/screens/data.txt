@@ -49,7 +49,7 @@ VERTICAL
       END
       HORIZONTAL
         BUTTON "Begin" 'begin_attitude("TEST")'
-        BUTTON "End" "cmd('BLUEBOY ENDTESTATT with ID 33')"
+        BUTTON "End" 'end_attitude("TEST")'
       END
       LABELVALUE BLUEBOY TESTATTRAW MAGX CONVERTED 32
       LABELVALUE BLUEBOY TESTATTRAW MAGY CONVERTED 32

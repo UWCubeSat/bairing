@@ -19,9 +19,12 @@ void OnBlueboyReceive(int bufsize) {
   }
 }
 
+static int queried = 0;
+
 void OnBlueboyRequest() {
   struct BlueboyData data;
   I2CBus *bus = eusci::GetI2C(BLUEBOY_BUS);
+  queried++;
   if (executing) {
     if (command == 0x01) {
       // reset
@@ -36,21 +39,21 @@ void OnBlueboyRequest() {
       switch (type) {
         case BlueboyDataType::Mag:
           // magnetometer
-          data.magnetic_field.x = 0.0;
-          data.magnetic_field.y = 0.0;
-          data.magnetic_field.z = 0.0;
+          data.magnetic_field.x = 0.0 * queried;
+          data.magnetic_field.y = 0.0 * queried;
+          data.magnetic_field.z = 0.0 * queried;
           break;
         case BlueboyDataType::Acc:
           // accelerometer
-          data.acceleration.x = 1.1;
-          data.acceleration.y = 1.1;
-          data.acceleration.z = 1.1;
+          data.acceleration.x = 1.1 * queried;
+          data.acceleration.y = 1.1 * queried;
+          data.acceleration.z = 1.1 * queried;
           break;
         case BlueboyDataType::Gyro:
           // gyroscope
-          data.angular_velocity.x = 2.2;
-          data.angular_velocity.y = 2.2;
-          data.angular_velocity.z = 2.2;
+          data.angular_velocity.x = 2.2 * queried;
+          data.angular_velocity.y = 2.2 * queried;
+          data.angular_velocity.z = 2.2 * queried;
           break;
         case BlueboyDataType::Quaternion:
           // orientation, quaternion
