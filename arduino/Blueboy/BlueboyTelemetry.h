@@ -5,21 +5,8 @@
 #include <AltSoftSerial.h>
 #include "PacketSender.h"
 
+#include "Blueboy.h"
 #include "BlueboyPeripherals.h"
-
-// Telemetry IDs
-enum class TelemetryID {
-  Status =  0x00,
-  Message = 0x01,
-
-  OwnAttitudeRaw =        0x10,
-  OwnAttitudeEuler =      0x11,
-  OwnAttitudeQuaternion = 0x12,
-
-  TestAttitudeRaw =        0x10,
-  TestAttitudeEuler =      0x11,
-  TestAttitudeQuaternion = 0x12,
-};
 
 struct TelemetrySettings {
   AttitudeMode mode;          // attitude logging mode

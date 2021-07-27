@@ -5,32 +5,8 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LIS2MDL.h>
 #include <Adafruit_LSM6DS33.h>
+#include "Blueboy.h"
 #include "OneUDriver.h"
-
-struct AttitudeData {
-  union {
-    struct {
-      sensors_vec_t magnetic;
-      sensors_vec_t acceleration;
-      sensors_vec_t gyro;
-    } raw;
-    struct {
-      sensors_vec_t euler;
-      struct Quaternion quaternion;
-    } orientation;
-  };
-};
-
-enum class AttitudeMode {
-  Raw = 0,
-  Euler = 1,
-  Quaternion = 2
-};
-
-enum class Device {
-  Own = 0x01,
-  Test = 0x02
-};
 
 class BlueboyPeripherals {
  public:

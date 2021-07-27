@@ -4,22 +4,7 @@
 #include <Arduino.h>
 #include <AltSoftSerial.h>
 #include "PacketReceiver.h"
-
-// Command IDs
-enum class CommandID {
-  Reset =       0x00,
-  Echo =        0x01,
-  
-  BeginOwnAttitude =  0x10,
-  EndOwnAttitude =    0x11,
-  EndOwnAll =         0x1F,
-
-  BeginTestAttitude = 0x20,
-  EndTestAttitude =   0x21,
-  EndTestAll =        0x2F,
-  
-  Invalid = 0xFF,
-};
+#include "Blueboy.h"
 
 typedef bool (*CommandCallback)(CommandID id, const char *data, uint16_t len);
 

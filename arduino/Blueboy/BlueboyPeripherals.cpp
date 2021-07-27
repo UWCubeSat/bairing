@@ -50,29 +50,30 @@ bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
   _lis2mdl.getEvent(&mag);
   _lsm6ds33.getEvent(&accel, &gyro, &temp);
 
-  data->raw.magnetic = mag.magnetic;
-  data->raw.acceleration = accel.acceleration;
-  data->raw.gyro = gyro.gyro;
+  // hacky gross way to cast the adafruit sensors_vec_t to our Vector
+  data->raw.magnetic =      *(struct Vector *)&mag.magnetic;
+  data->raw.acceleration =  *(struct Vector *)&accel.acceleration;
+  data->raw.gyro =          *(struct Vector *)&gyro.gyro;
   
   return true;
 }
 
 bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {
-  struct OneUData raw;
-  if (!_oneU.ReadData(OneUDataType::Mag, &raw)) {
+  struct OneUData oud;
+  if (!_oneU.ReadData(OneUDataType::Mag, &oud)) {
     return false;
   }
-  data->raw.magnetic = raw.magnetic;
+  data->raw.magnetic = oud.raw.magnetic;
   
-  if (!_oneU.ReadData(OneUDataType::Acc, &raw)) {
+  if (!_oneU.ReadData(OneUDataType::Acc, &oud)) {
     return false;
   }
-  data->raw.acceleration = raw.acceleration;
+  data->raw.acceleration = oud.raw.acceleration;
   
-  if (!_oneU.ReadData(OneUDataType::Gyro, &raw)) {
+  if (!_oneU.ReadData(OneUDataType::Gyro, &oud)) {
     return false;
   }
-  data->raw.gyro = raw.gyro;
+  data->raw.gyro = oud.raw.gyro;
   
   return true;
 }

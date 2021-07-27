@@ -3,6 +3,7 @@
 
 #include "PacketReceiver.h"
 #include "PacketSender.h"
+#include "Blueboy.h"
 #include "CommandProcessor.h"
 #include "BlueboyTelemetry.h"
 
