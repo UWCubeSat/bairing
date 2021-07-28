@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <AltSoftSerial.h>
-#include "PacketReceiver.h"
+#include "util/PacketReceiver.h"
 #include "Blueboy.h"
 
 typedef bool (*CommandCallback)(CommandID id, const char *data, uint16_t len);
@@ -26,7 +26,7 @@ class CommandProcessor {
   AltSoftSerial& _serial;
 
   
-  char _rcvbuf[128];            // buffer containing data received from packets (without sync, length, id, etc.)
+  char _rcvbuf[64];             // buffer containing data received from packets (without sync, length, id, etc.)
   PacketReceiver _receiver;     // internal packet receiver
   
   CommandCallback _reset;              // reset command callback

@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 
-#include "Blueboy.h"
+#include "../Blueboy.h"
 
 class OneUDriver {
  public: 

@@ -17,7 +17,7 @@ bool BlueboyPeripherals::Initialize() {
   }
   
   if (!_lis2mdl.begin()) {
-    Serial.println("Failed to find LSM2SDL");
+    Serial.println("Failed to find LIS2MDL");
     return false;
   }
 

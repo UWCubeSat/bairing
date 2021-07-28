@@ -6,7 +6,7 @@
 #include <Adafruit_LIS2MDL.h>
 #include <Adafruit_LSM6DS33.h>
 #include "Blueboy.h"
-#include "OneUDriver.h"
+#include "sensor/OneUDriver.h"
 
 class BlueboyPeripherals {
  public:

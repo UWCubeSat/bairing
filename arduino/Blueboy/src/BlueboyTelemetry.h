@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <AltSoftSerial.h>
-#include "PacketSender.h"
+#include "util/PacketSender.h"
 
 #include "Blueboy.h"
 #include "BlueboyPeripherals.h"
@@ -51,7 +51,7 @@ class BlueboyTelemetry {
 
   BlueboyPeripherals _peripherals;
   
-  char _sendbuf[128];           // send packet buffer, used to build a packet
+  char _sendbuf[64];            // send packet buffer, used to build a packet
   PacketSender _sender;         // internal packet sender
 
   struct TelemetrySettings _settings[2];

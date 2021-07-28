@@ -1,11 +1,9 @@
 #include <AltSoftSerial.h>
 #include <Wire.h>
 
-#include "PacketReceiver.h"
-#include "PacketSender.h"
-#include "Blueboy.h"
-#include "CommandProcessor.h"
-#include "BlueboyTelemetry.h"
+#include "src/Blueboy.h"
+#include "src/CommandProcessor.h"
+#include "src/BlueboyTelemetry.h"
 
 const int RX_PIN = 8;
 const int TX_PIN = 9;
@@ -21,7 +19,7 @@ const char *END_LOG_MSG = "Ended logging";
 const char *RESET_MSG = "Resetting system...";
 const char *UNRECOGNIZED_MSG = "Unrecognized command";
 
-char strbuf[64];        // general-purpose string buffer
+char strbuf[64];         // general-purpose string buffer
 char message[32];        // stored message to be echoed on command
 
 AltSoftSerial bt(RX_PIN, TX_PIN);              // rx on pin 8, tx on pin 9
