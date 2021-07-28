@@ -4,6 +4,7 @@
 #include "src/Blueboy.h"
 #include "src/CommandProcessor.h"
 #include "src/BlueboyTelemetry.h"
+#include "src/sensor/CalibratedLSM6DS33.h"
 
 const int RX_PIN = 8;
 const int TX_PIN = 9;
@@ -21,6 +22,8 @@ const char *UNRECOGNIZED_MSG = "Unrecognized command";
 
 char strbuf[64];         // general-purpose string buffer
 char message[32];        // stored message to be echoed on command
+
+// volatile CalibratedLSM6DS33 imu;
 
 AltSoftSerial bt(RX_PIN, TX_PIN);              // rx on pin 8, tx on pin 9
 

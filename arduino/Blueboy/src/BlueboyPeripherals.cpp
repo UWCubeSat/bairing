@@ -2,7 +2,7 @@
 
 constexpr uint8_t ONEU_ADDRESS = 0x3A;
 
-BlueboyPeripherals::BlueboyPeripherals(): _lsm6ds33(Adafruit_LSM6DS33()),
+BlueboyPeripherals::BlueboyPeripherals(): _lsm6ds33(CalibratedLSM6DS33()),
                                           _lis2mdl(Adafruit_LIS2MDL(0x50)),
                                           _oneU(ONEU_ADDRESS) , _initialized(false) { }
 
@@ -11,7 +11,7 @@ bool BlueboyPeripherals::Initialize() {
     return true;
   }
   
-  if (!_lsm6ds33.begin_I2C()) {
+  if (!_lsm6ds33.Initialize()) {
     Serial.println("Failed to find LSM6DS33");
     return false;
   }
@@ -42,18 +42,16 @@ bool BlueboyPeripherals::ReadRaw(Device dev, struct AttitudeData *data) {
 }
 
 bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
-  sensors_event_t mag;
-  sensors_event_t accel;
-  sensors_event_t gyro;
-  sensors_event_t temp;
+  sensors_event_t event;
   
-  _lis2mdl.getEvent(&mag);
-  _lsm6ds33.getEvent(&accel, &gyro, &temp);
-
-  // hacky gross way to cast the adafruit sensors_vec_t to our Vector
-  data->raw.magnetic =      *(struct Vector *)&mag.magnetic;
-  data->raw.acceleration =  *(struct Vector *)&accel.acceleration;
-  data->raw.gyro =          *(struct Vector *)&gyro.gyro;
+  _lis2mdl.getEvent(&event);
+  data->raw.magnetic = *(struct Vector *)&event.magnetic;
+  
+  _lsm6ds33.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER);
+  data->raw.acceleration = *(struct Vector *)&event.acceleration;
+  
+  _lsm6ds33.GetEventRaw(&event, SENSOR_TYPE_GYROSCOPE);
+  data->raw.gyro = *(struct Vector *)&event.gyro;
   
   return true;
 }

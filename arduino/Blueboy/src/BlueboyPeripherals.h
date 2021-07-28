@@ -4,9 +4,9 @@
 
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LIS2MDL.h>
-#include <Adafruit_LSM6DS33.h>
 #include "Blueboy.h"
 #include "sensor/OneUDriver.h"
+#include "sensor/CalibratedLSM6DS33.h"
 
 class BlueboyPeripherals {
  public:
@@ -23,7 +23,7 @@ class BlueboyPeripherals {
   bool ReadTestOrientation(struct AttitudeData *data);
   
  private:
-  Adafruit_LSM6DS33 _lsm6ds33;
+  CalibratedLSM6DS33 _lsm6ds33;
   Adafruit_LIS2MDL _lis2mdl;
 
   OneUDriver _oneU;             // driver for attached 1U system
