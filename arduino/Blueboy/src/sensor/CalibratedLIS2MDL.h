@@ -29,6 +29,8 @@ class CalibratedLIS2MDL : public SimpleCalibratedSensor {
   
   // Adds a calibration sample for the given sensor type (ignored if this sensor only outputs one type)
   void AddCalibrationSample() override;
+
+  void GetCalibration(struct AxisOffsets *offsets) override { *offsets = _magOffsets; }
  private:
   Adafruit_LIS2MDL   _lis2mdl;        // internal LIS2MDL driver
   struct AxisLimits   _magLimits;     // magnetometer limits

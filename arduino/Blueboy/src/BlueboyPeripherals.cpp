@@ -3,7 +3,7 @@
 constexpr uint8_t ONEU_ADDRESS = 0x3A;
 
 BlueboyPeripherals::BlueboyPeripherals(): lsm6ds33(CalibratedLSM6DS33()),
-                                          _lis2mdl(Adafruit_LIS2MDL(0x50)),
+                                          lis2mdl(CalibratedLIS2MDL()),
                                           _oneU(ONEU_ADDRESS) , _initialized(false) { }
 
 bool BlueboyPeripherals::Initialize() {
@@ -16,7 +16,7 @@ bool BlueboyPeripherals::Initialize() {
     return false;
   }
   
-  if (!_lis2mdl.begin()) {
+  if (!lis2mdl.Initialize()) {
     Serial.println("Failed to find LIS2MDL");
     return false;
   }
@@ -44,7 +44,7 @@ bool BlueboyPeripherals::ReadRaw(Device dev, struct AttitudeData *data) {
 bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
   sensors_event_t event;
   
-  _lis2mdl.getEvent(&event);
+  lis2mdl.GetEvent(&event);
   data->raw.magnetic = *(struct Vector *)&event.magnetic;
   
   lsm6ds33.GetEvent(&event, SENSOR_TYPE_ACCELEROMETER);

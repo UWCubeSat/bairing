@@ -43,7 +43,7 @@ class SimpleCalibratedSensor {
   // Must be called between a call to BeginCalibration and EndCalibration
   virtual void AddCalibrationSample() = 0;
   
-  void GetCalibration(struct AxisOffsets *offsets) { *offsets = _gyroOffsets; }
+  virtual void GetCalibration(struct AxisOffsets *offsets) = 0;
  protected:
   sensors_type_t _currCalibration;
   

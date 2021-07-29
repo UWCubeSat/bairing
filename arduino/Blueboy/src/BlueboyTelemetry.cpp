@@ -84,6 +84,11 @@ void BlueboyTelemetry::Tick() {
     delay(1);
   }
   
+  if (_peripherals.lis2mdl.Calibrating()) {
+    _peripherals.lis2mdl.AddCalibrationSample();
+    delay(1);
+  }
+  
   for (int i = 0; i < 2; i++) {
     if (_settings[i].logging && (millis() - _settings[i].lastSent >= _settings[i].sendDelay)) {
       struct AttitudeData data;

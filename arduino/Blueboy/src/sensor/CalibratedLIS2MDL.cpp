@@ -17,13 +17,13 @@ bool CalibratedLIS2MDL::GetEvent(sensors_event_t *event, sensors_type_t type) {
 }
 
 bool CalibratedLIS2MDL::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
-  bool success = _lis2mdl->getEvent(event);
+  bool success = _lis2mdl.getEvent(event);
   
   /*
   Serial.print("Raw: (");
-  Serial.print(event->mag.x, 4); Serial.print(", ");
-  Serial.print(event->mag.y, 4); Serial.print(", ");
-  Serial.print(event->mag.z, 4); Serial.println(")");
+  Serial.print(event->magnetic.x, 4); Serial.print(", ");
+  Serial.print(event->magnetic.y, 4); Serial.print(", ");
+  Serial.print(event->magnetic.z, 4); Serial.println(")");
   //*/
   
   return success;
@@ -42,8 +42,7 @@ void CalibratedLIS2MDL::BeginCalibration(sensors_type_t type) {
 }
 
 void CalibratedLIS2MDL::EndCalibration() {
-  if (_currCalibration) {
-    // type is not 0, so we were calibrating
+  if (_currCalibration) {  // type is not 0, so we were calibrating
     _magOffsets.xOff = (_magLimits.xMin + _magLimits.xMax) / 2.0;
     _magOffsets.yOff = (_magLimits.yMin + _magLimits.yMax) / 2.0;
     _magOffsets.zOff = (_magLimits.zMin + _magLimits.zMax) / 2.0;
@@ -52,7 +51,7 @@ void CalibratedLIS2MDL::EndCalibration() {
 }
 
 void CalibratedLIS2MDL::AddCalibrationSample() {
-  if (_currCalibration == SENSOR_TYPE_MAGNETIC_FIELD) {
+  if (_currCalibration) {
     sensors_event_t event;
     if (GetEventRaw(&event, _currCalibration)) {
       if (_magToDiscard > 0) {

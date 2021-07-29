@@ -11,17 +11,17 @@ const int TX_PIN = 9;
 const int RST_PIN = 4;
 
 // packet messages
-const char *DEFAULT_MSG = "see how the brain plays around";
-const char *SETUP_MSG = "Initialized system";
-const char *CANT_LOG_MSG = "Can't log, stop calibrating first";
-const char *BEGIN_LOG_MSG = "Began logging";
-const char *END_LOG_MSG = "Ended logging";
-const char *RESET_MSG = "Resetting system...";
-const char *UNRECOGNIZED_MSG = "Unrecognized command";
+const char *DEFAULT_MSG =       "see how the brain plays around";
+const char *SETUP_MSG =         "Initialized system";
+const char *CANT_LOG_MSG =      "Can't log, stop calibrating first";
+const char *BEGIN_LOG_MSG =     "Began logging";
+const char *END_LOG_MSG =       "Ended logging";
+const char *RESET_MSG =         "Resetting system...";
+const char *UNRECOGNIZED_MSG =  "Unrecognized command";
 
-const char *CANT_CALIB_MSG = "Can't calibrate, stop logging first";
-const char *BEGIN_CALIB_MSG = "Began calibration";
-const char *END_CALIB_MSG = "Ended calibration";
+const char *CANT_CALIB_MSG =    "Can't calibrate, stop logging first";
+const char *BEGIN_CALIB_MSG =   "Began calibration";
+const char *END_CALIB_MSG =     "Ended calibration";
 
 char strbuf[64];         // general-purpose string buffer
 char message[32];        // stored message to be echoed on command
@@ -109,6 +109,7 @@ bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   
   switch (cmd) {
     case CommandID::BeginCalibMag:
+      peripherals.lis2mdl.BeginCalibration(SENSOR_TYPE_MAGNETIC_FIELD);
       break;
     case CommandID::BeginCalibAcc:
       break;
@@ -124,14 +125,10 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   
   switch (cmd) {
     case CommandID::EndCalibMag:
-      break;
-    case CommandID::EndCalibAcc:
-      break;
-    case CommandID::EndCalibGyro:
-      peripherals.lsm6ds33.EndCalibration();
+      peripherals.lis2mdl.EndCalibration();
 
       struct AxisOffsets off;
-      peripherals.lsm6ds33.GetCalibration(&off);
+      peripherals.lis2mdl.GetCalibration(&off);
       
       Serial.print("x: ");
       Serial.println(off.xOff, 5);
@@ -139,6 +136,11 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
       Serial.println(off.yOff, 5);
       Serial.print("z: ");
       Serial.println(off.zOff, 5);
+      break;
+    case CommandID::EndCalibAcc:
+      break;
+    case CommandID::EndCalibGyro:
+      peripherals.lsm6ds33.EndCalibration();
       break;
   }
   return false;
