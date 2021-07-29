@@ -43,6 +43,9 @@ class BlueboyTelemetry {
 
   // Send a message packet with the given message
   void SendMessage(const char *str);
+  
+  // Overload of SendMessage, but accepts a string in flash memory
+  void SendMessage(const __FlashStringHelper *str);
 
   // Send an attitude packet belonging to the given device with the given mode
   void SendAttitude(Device dev, AttitudeMode mode, const struct AttitudeData& data);

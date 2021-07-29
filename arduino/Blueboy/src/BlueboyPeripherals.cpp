@@ -12,17 +12,17 @@ bool BlueboyPeripherals::Initialize() {
   }
   
   if (!lsm6ds33.Initialize()) {
-    Serial.println("Failed to find LSM6DS33");
+    Serial.println(F("Failed to find LSM6DS33"));
     return false;
   }
   
   if (!lis2mdl.Initialize()) {
-    Serial.println("Failed to find LIS2MDL");
+    Serial.println(F("Failed to find LIS2MDL"));
     return false;
   }
 
   if (!_oneU.Initialize()) {
-    Serial.println("Failed to find test system");
+    Serial.println(F("Failed to find test system"));
     return false;
   }
 

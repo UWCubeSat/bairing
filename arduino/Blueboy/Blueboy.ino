@@ -1,27 +1,16 @@
-#include <AltSoftSerial.h>
-#include <Wire.h>
+#include <AltSoftSerial.h>    // For UART communication with HC-06
+#include <Wire.h>             // For I2C communication with sensors and 1U
+#include <avr/pgmspace.h>     // For storing constants in flash memory
 
 #include "src/Blueboy.h"
 #include "src/CommandProcessor.h"
 #include "src/BlueboyTelemetry.h"
 #include "src/sensor/CalibratedLSM6DS33.h"
+#include "src/Messages.h"
 
 const int RX_PIN = 8;
 const int TX_PIN = 9;
 const int RST_PIN = 4;
-
-// packet messages
-const char *DEFAULT_MSG =       "see how the brain plays around";
-const char *SETUP_MSG =         "Initialized system";
-const char *CANT_LOG_MSG =      "Can't log, stop calibrating first";
-const char *BEGIN_LOG_MSG =     "Began logging";
-const char *END_LOG_MSG =       "Ended logging";
-const char *RESET_MSG =         "Resetting system...";
-const char *UNRECOGNIZED_MSG =  "Unrecognized command";
-
-const char *CANT_CALIB_MSG =    "Can't calibrate, stop logging first";
-const char *BEGIN_CALIB_MSG =   "Began calibration";
-const char *END_CALIB_MSG =     "Ended calibration";
 
 char strbuf[64];         // general-purpose string buffer
 char message[32];        // stored message to be echoed on command
@@ -122,30 +111,33 @@ bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
 
 bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   telemetry.SendMessage(END_CALIB_MSG);
-  
+
+  struct AxisOffsets off;
   switch (cmd) {
     case CommandID::EndCalibMag:
       peripherals.lis2mdl.EndCalibration();
-
-      struct AxisOffsets off;
       peripherals.lis2mdl.GetCalibration(&off);
-      
-      Serial.print("x: ");
-      Serial.println(off.xOff, 5);
-      Serial.print("y: ");
-      Serial.println(off.yOff, 5);
-      Serial.print("z: ");
-      Serial.println(off.zOff, 5);
       break;
     case CommandID::EndCalibAcc:
       break;
     case CommandID::EndCalibGyro:
       peripherals.lsm6ds33.EndCalibration();
+      peripherals.lsm6ds33.GetCalibration(&off);
       break;
+    default:
+      return false;
   }
-  return false;
+  Serial.println(F("Calibration complete! Offsets: "));
+  Serial.print(F("  x: "));
+  Serial.println(off.xOff, 5);
+  Serial.print(F("  y: "));
+  Serial.println(off.yOff, 5);
+  Serial.print(F("  z: "));
+  Serial.println(off.zOff, 5);
+  return true;
 }
 
+// TODO
 bool ClearCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   switch (cmd) {
     case CommandID::ClearCalibMag:
@@ -166,7 +158,7 @@ void setup() {
   bt.begin(57600);
   Wire.begin();
   
-  strcpy(message, DEFAULT_MSG);
+  strcpy_P(message, (const char *) DEFAULT_MSG);
 
   commands.Bind(CommandID::Reset,             &ResetCommand);
   commands.Bind(CommandID::BeginOwnAttitude,  &BeginLogCommand);

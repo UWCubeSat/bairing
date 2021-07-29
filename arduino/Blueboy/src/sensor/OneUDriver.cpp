@@ -12,18 +12,18 @@ bool OneUDriver::ReadData(OneUDataType type, struct OneUData *data) {
   Wire.write(REQUEST_BASE + ((uint8_t) type));
   int status = Wire.endTransmission(false);  // don't stop
   if (status != 0) {  // if not a success
-    Serial.print("  OneUDriver failed to request data of type ");
+    Serial.print(F("  OneUDriver failed to request data of type "));
     Serial.print((int) type, HEX);
-    Serial.print(": ");
+    Serial.print(F(": "));
     Serial.println(status);
     return false;
   }
   uint8_t size = sizeof(struct OneUData);
   uint8_t received = Wire.requestFrom(_address, size);
   if (received != size) {
-    Serial.print("  OneUDriver failed to receive data of type ");
+    Serial.print(F("  OneUDriver failed to receive data of type "));
     Serial.print((int) type, HEX);
-    Serial.print(": ");
+    Serial.print(F(": "));
     Serial.println(received);
     return false;
   }

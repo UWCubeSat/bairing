@@ -38,6 +38,13 @@ bool BlueboyTelemetry::Logging(Device dev) {
   return _settings[index].logging;
 }
 
+static char msgbuf[64];
+
+void BlueboyTelemetry::SendMessage(const __FlashStringHelper *str) {
+  strcpy_P(msgbuf, (const char *)str);
+  SendMessage(msgbuf);
+}
+
 void BlueboyTelemetry::SendMessage(const char *str) {
   Serial.println(str);
   _sender.Begin((uint8_t) TelemetryID::Message);

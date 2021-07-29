@@ -22,6 +22,7 @@ void CommandProcessor::Bind(CommandID cmd, CommandCallback cmdCallback) {
     case CommandID::Reset:
       _reset = cmdCallback;
       break;
+
     case CommandID::Echo:
       _echo = cmdCallback;
       break;
@@ -71,6 +72,7 @@ bool CommandProcessor::Dispatch(CommandID cmd, const char *data, uint16_t dataLe
     case CommandID::Reset:
       return _reset(cmd, data, dataLen);
       break;
+
     case CommandID::Echo:
       return _echo(cmd, data, dataLen);
       break;
@@ -78,6 +80,7 @@ bool CommandProcessor::Dispatch(CommandID cmd, const char *data, uint16_t dataLe
     case CommandID::BeginOwnAttitude:
       return _beginOwnAttitude(cmd, data, dataLen);
       break;
+
     case CommandID::EndOwnAttitude:
       return _endOwnAttitude(cmd, data, dataLen);
       break;
@@ -85,6 +88,7 @@ bool CommandProcessor::Dispatch(CommandID cmd, const char *data, uint16_t dataLe
     case CommandID::BeginTestAttitude:
       return _beginTestAttitude(cmd, data, dataLen);
       break;
+
     case CommandID::EndTestAttitude:
       return _endTestAttitude(cmd, data, dataLen);
       break;

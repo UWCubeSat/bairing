@@ -8,17 +8,27 @@ void PacketSender::Begin(uint8_t id) {
   AddByte(id);
 }
 
+int PacketSender::AddByte(uint8_t addbyte) {
+  // return AddBuf((char *) &addbyte, sizeof(uint8_t));
+  _buf[_off] = addbyte;
+  _off++;
+  _len++;
+  return 1;
+}
+
 int PacketSender::AddBuf(const char *addbuf, int len) {
+  /*
   for (int i = 0; i < len; i++) {
     _buf[_off + i] = addbuf[i];
   }
   _off += len;
   _len += len;
   return len;
-}
-
-int PacketSender::AddByte(uint8_t addbyte) {
-  return AddBuf((char *) &addbyte, sizeof(uint8_t));
+  */
+  for (int i = 0; i < len; i++) {
+    AddByte(addbuf[i]);
+  }
+  return len;
 }
 
 int PacketSender::AddShort(uint16_t addshort) {
