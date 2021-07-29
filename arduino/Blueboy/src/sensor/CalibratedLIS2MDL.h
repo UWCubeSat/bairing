@@ -13,10 +13,6 @@ class CalibratedLIS2MDL : public SimpleCalibratedSensor {
   
   bool Initialize() override;
   
-  // Outputs a sensor event of the given event (ignored if this sensor only outputs one type), with values compensated for by previous calibration
-  // Returns true iff the sensor was successfully read
-  bool GetEvent(sensors_event_t *event, sensors_type_t type = 0) override;
-  
   // Outputs a sensor event of the given event (ignored if this sensor only outputs one type)
   // Returns true iff the sensor was successfully read
   bool GetEventRaw(sensors_event_t *event, sensors_type_t type = 0) override;
@@ -31,14 +27,27 @@ class CalibratedLIS2MDL : public SimpleCalibratedSensor {
   void AddCalibrationSample() override;
 
   void GetCalibration(struct AxisOffsets *offsets) override { *offsets = _magOffsets; }
+  
+  // Clears the currently stored calibration offsets
+  virtual void ClearCalibration() override {    
+    CalibrationStorage::Clear(_handle);
+    _magOffsets.xOff = _magOffsets.yOff = _magOffsets.zOff = 0.0;
+  }
  private:
   Adafruit_LIS2MDL   _lis2mdl;        // internal LIS2MDL driver
   struct AxisLimits   _magLimits;     // magnetometer limits
   struct AxisOffsets  _magOffsets;    // magnetometer offsets
   int _magToDiscard;                  // number of samples to discard
+  StorageHandle _handle;              // EEPROM handle
   
   // Compensates the sensor value of the given type pointed to by reading
   void Compensate(sensors_event_t *reading, sensors_type_t) override;
+  
+  // Fetches the calibration offset data stored in the EEPROM
+  void FetchCalibration() override { CalibrationStorage::Fetch(_handle, &_magOffsets); }
+  
+  // Updates the calibration offset data stored in the EEPROM with the current offsets
+  void UpdateCalibration() override { CalibrationStorage::Update(_handle, &_magOffsets); }
 };
 
 #endif

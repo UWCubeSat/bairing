@@ -1,19 +1,19 @@
 #include "CalibratedLIS2MDL.h"
 
 CalibratedLIS2MDL::CalibratedLIS2MDL(): _lis2mdl(Adafruit_LIS2MDL()) {
-  _magOffsets.xOff = _magOffsets.yOff = _magOffsets.zOff = 0;
+  _handle = CalibrationStorage::Register();
+  FetchCalibration();
 }
 
 bool CalibratedLIS2MDL::Initialize() {
-  return _lis2mdl.begin();
-}
-
-bool CalibratedLIS2MDL::GetEvent(sensors_event_t *event, sensors_type_t type) {
-  bool status = GetEventRaw(event, type);
-  if (status) {
-    Compensate(event, type);
+  bool began = _lis2mdl.begin();
+  if (began) {
+    Serial.println(F("Stored magnetometer calibration offsets: "));
+    Serial.print(F("  x: ")); Serial.println(_magOffsets.xOff);
+    Serial.print(F("  y: ")); Serial.println(_magOffsets.yOff);
+    Serial.print(F("  z: ")); Serial.println(_magOffsets.zOff);
   }
-  return status;
+  return began;
 }
 
 bool CalibratedLIS2MDL::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
@@ -47,6 +47,8 @@ void CalibratedLIS2MDL::EndCalibration() {
     _magOffsets.yOff = (_magLimits.yMin + _magLimits.yMax) / 2.0;
     _magOffsets.zOff = (_magLimits.zMin + _magLimits.zMax) / 2.0;
     _currCalibration = 0;
+    
+    UpdateCalibration();
   }
 }
 

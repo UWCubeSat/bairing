@@ -1,19 +1,20 @@
 #include "CalibratedLSM6DS33.h"
 
 CalibratedLSM6DS33::CalibratedLSM6DS33(): _lsm6ds33(Adafruit_LSM6DS33()) {
-  _gyroOffsets.xOff = _gyroOffsets.yOff = _gyroOffsets.zOff = 0;
+  CalibrationStorage::Register();  // dummmy, save a space for accelerometer
+  _handle = CalibrationStorage::Register();
+  FetchCalibration();
 }
 
 bool CalibratedLSM6DS33::Initialize() {
-  return _lsm6ds33.begin_I2C();
-}
-
-bool CalibratedLSM6DS33::GetEvent(sensors_event_t *event, sensors_type_t type) {
-  bool status = GetEventRaw(event, type);
-  if (status) {
-    Compensate(event, type);
+  bool began = _lsm6ds33.begin_I2C();
+  if (began) {
+    Serial.println(F("Stored gyroscope calibration offsets: "));
+    Serial.print(F("  x: ")); Serial.println(_gyroOffsets.xOff);
+    Serial.print(F("  y: ")); Serial.println(_gyroOffsets.yOff);
+    Serial.print(F("  z: ")); Serial.println(_gyroOffsets.zOff);
   }
-  return status;
+  return began;
 }
 
 bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
@@ -56,6 +57,8 @@ void CalibratedLSM6DS33::EndCalibration() {
     _gyroOffsets.yOff = (_gyroLimits.yMin + _gyroLimits.yMax) / 2.0;
     _gyroOffsets.zOff = (_gyroLimits.zMin + _gyroLimits.zMax) / 2.0;
     _currCalibration = 0;
+    
+    UpdateCalibration();
   }
 }
 
