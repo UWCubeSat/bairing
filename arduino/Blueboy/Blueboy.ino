@@ -10,8 +10,6 @@ const int RX_PIN = 8;
 const int TX_PIN = 9;
 const int RST_PIN = 4;
 
-const uint32_t SYNC_PATTERN = 0xDEADBEEF;
-
 // packet messages
 const char *DEFAULT_MSG = "see how the brain plays around";
 const char *SETUP_MSG = "Initialized system";
@@ -27,8 +25,6 @@ const char *END_CALIB_MSG = "Ended calibration";
 
 char strbuf[64];         // general-purpose string buffer
 char message[32];        // stored message to be echoed on command
-
-// volatile CalibratedLSM6DS33 imu;
 
 AltSoftSerial bt(RX_PIN, TX_PIN);              // rx on pin 8, tx on pin 9
 
@@ -133,6 +129,16 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
       break;
     case CommandID::EndCalibGyro:
       peripherals.lsm6ds33.EndCalibration();
+
+      struct AxisOffsets off;
+      peripherals.lsm6ds33.GetCalibration(&off);
+      
+      Serial.print("x: ");
+      Serial.println(off.xOff, 5);
+      Serial.print("y: ");
+      Serial.println(off.yOff, 5);
+      Serial.print("z: ");
+      Serial.println(off.zOff, 5);
       break;
   }
   return false;

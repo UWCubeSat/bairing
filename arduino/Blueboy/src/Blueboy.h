@@ -80,6 +80,8 @@ enum class Device {
  * Command and telemetry constants
  */
 
+constexpr uint32_t SYNC_PATTERN = 0xDEADBEEF;
+
 // Command IDs
 enum class CommandID {
   Reset =             0x00,
