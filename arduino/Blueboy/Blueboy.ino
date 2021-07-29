@@ -94,8 +94,6 @@ bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
     telemetry.SendMessage(CANT_CALIB_MSG);
     return false;
   }
-
-  telemetry.SendMessage(BEGIN_CALIB_MSG);
   
   switch (cmd) {
     case CommandID::BeginCalibMag:
@@ -107,12 +105,13 @@ bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
       peripherals.lsm6ds33.BeginCalibration(SENSOR_TYPE_GYROSCOPE);
       break;
   }
+
+  telemetry.SendMessage(BEGIN_CALIB_MSG);
+  
   return false;
 }
 
 bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
-  telemetry.SendMessage(END_CALIB_MSG);
-
   struct AxisOffsets off;
   switch (cmd) {
     case CommandID::EndCalibMag:
@@ -128,6 +127,8 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
     default:
       return false;
   }
+  telemetry.SendMessage(END_CALIB_MSG);
+  
   Serial.println(F("Calibration complete! Offsets: "));
   Serial.print(F("  x: "));
   Serial.println(off.xOff, 5);
@@ -138,17 +139,22 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   return true;
 }
 
-// TODO
-bool ClearCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
+bool ClearCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {  
   switch (cmd) {
     case CommandID::ClearCalibMag:
+      peripherals.lis2mdl.ClearCalibration();
       break;
     case CommandID::ClearCalibAcc:
       break;
     case CommandID::ClearCalibGyro:
+      peripherals.lsm6ds33.ClearCalibration();
       break;
+    default:
+      return false;
   }
-  return false;
+  
+  telemetry.SendMessage(CLEAR_CALIB_MSG);
+  return true;
 }
 
 void setup() {

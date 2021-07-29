@@ -14,5 +14,6 @@
 #define CANT_CALIB_MSG      F("Can't calibrate, stop logging first")
 #define BEGIN_CALIB_MSG     F("Began calibration")
 #define END_CALIB_MSG       F("Ended calibration")
+#define CLEAR_CALIB_MSG     F("Cleared calibration")
 
 #endif
