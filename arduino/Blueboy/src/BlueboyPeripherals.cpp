@@ -2,7 +2,7 @@
 
 constexpr uint8_t ONEU_ADDRESS = 0x3A;
 
-BlueboyPeripherals::BlueboyPeripherals(): _lsm6ds33(CalibratedLSM6DS33()),
+BlueboyPeripherals::BlueboyPeripherals(): lsm6ds33(CalibratedLSM6DS33()),
                                           _lis2mdl(Adafruit_LIS2MDL(0x50)),
                                           _oneU(ONEU_ADDRESS) , _initialized(false) { }
 
@@ -11,7 +11,7 @@ bool BlueboyPeripherals::Initialize() {
     return true;
   }
   
-  if (!_lsm6ds33.Initialize()) {
+  if (!lsm6ds33.Initialize()) {
     Serial.println("Failed to find LSM6DS33");
     return false;
   }
@@ -47,10 +47,10 @@ bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
   _lis2mdl.getEvent(&event);
   data->raw.magnetic = *(struct Vector *)&event.magnetic;
   
-  _lsm6ds33.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER);
+  lsm6ds33.GetEvent(&event, SENSOR_TYPE_ACCELEROMETER);
   data->raw.acceleration = *(struct Vector *)&event.acceleration;
   
-  _lsm6ds33.GetEventRaw(&event, SENSOR_TYPE_GYROSCOPE);
+  lsm6ds33.GetEvent(&event, SENSOR_TYPE_GYROSCOPE);
   data->raw.gyro = *(struct Vector *)&event.gyro;
   
   return true;

@@ -1,8 +1,10 @@
 #include "BlueboyTelemetry.h"
 
-BlueboyTelemetry::BlueboyTelemetry(AltSoftSerial& serial, uint32_t sync): _serial(serial),
-                                                                          _sender(PacketSender(_sendbuf, sync)),
-                                                                          _peripherals(BlueboyPeripherals()) {
+BlueboyTelemetry::BlueboyTelemetry(AltSoftSerial& serial,
+                                   BlueboyPeripherals& peripherals,
+                                   uint32_t sync): _serial(serial),
+                                                   _sender(PacketSender(_sendbuf, sync)),
+                                                   _peripherals(peripherals) {
   for (int i = 0; i < 2; i++) {
     _settings[i].sendDelay = DEFAULT_LOG_DELAY;
     _settings[i].lastSent = 0;
@@ -29,6 +31,11 @@ void BlueboyTelemetry::BeginLogging(Device dev, AttitudeMode mode) {
 void BlueboyTelemetry::EndLogging(Device dev) {
   int index = (int) dev - 1;
   _settings[index].logging = false;
+}
+
+bool BlueboyTelemetry::Logging(Device dev) {
+  int index = (int) dev - 1;
+  return _settings[index].logging;
 }
 
 void BlueboyTelemetry::SendMessage(const char *str) {
@@ -72,6 +79,11 @@ void BlueboyTelemetry::SendAttitude(Device dev, AttitudeMode mode, const struct 
 }
 
 void BlueboyTelemetry::Tick() {
+  if (_peripherals.lsm6ds33.Calibrating()) {
+    _peripherals.lsm6ds33.AddCalibrationSample();
+    delay(1);
+  }
+  
   for (int i = 0; i < 2; i++) {
     if (_settings[i].logging && (millis() - _settings[i].lastSent >= _settings[i].sendDelay)) {
       struct AttitudeData data;

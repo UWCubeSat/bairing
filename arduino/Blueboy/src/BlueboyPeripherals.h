@@ -22,8 +22,9 @@ class BlueboyPeripherals {
   bool ReadOwnOrientation(struct AttitudeData *data);
   bool ReadTestOrientation(struct AttitudeData *data);
   
+  CalibratedLSM6DS33 lsm6ds33;
+  
  private:
-  CalibratedLSM6DS33 _lsm6ds33;
   Adafruit_LIS2MDL _lis2mdl;
 
   OneUDriver _oneU;             // driver for attached 1U system

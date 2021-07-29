@@ -11,7 +11,9 @@ CommandProcessor::CommandProcessor(AltSoftSerial& serial, uint32_t sync) : _seri
   _beginTestAttitude =   &NOOPCMD;
   _endTestAttitude =     &NOOPCMD;
   _invalid =             &NOOPCMD;
-  
+  _beginCalibrate =      &NOOPCMD;
+  _endCalibrate =        &NOOPCMD;
+  _clearCalibrate =      &NOOPCMD;
   _receiver.Begin();
 }
 
@@ -27,6 +29,7 @@ void CommandProcessor::Bind(CommandID cmd, CommandCallback cmdCallback) {
     case CommandID::BeginOwnAttitude:
       _beginOwnAttitude = cmdCallback;
       break;
+
     case CommandID::EndOwnAttitude:
       _endOwnAttitude = cmdCallback;
       break;
@@ -34,9 +37,27 @@ void CommandProcessor::Bind(CommandID cmd, CommandCallback cmdCallback) {
     case CommandID::BeginTestAttitude:
       _beginTestAttitude = cmdCallback;
       break;
+
     case CommandID::EndTestAttitude:
       _endTestAttitude = cmdCallback;
       break;
+    
+    case CommandID::BeginCalibMag:
+    case CommandID::BeginCalibAcc:
+    case CommandID::BeginCalibGyro:
+      _beginCalibrate = cmdCallback;
+      break;
+
+    case CommandID::EndCalibMag:
+    case CommandID::EndCalibAcc:
+    case CommandID::EndCalibGyro:
+      _endCalibrate = cmdCallback;
+      break;
+    
+    case CommandID::ClearCalibMag:
+    case CommandID::ClearCalibAcc:
+    case CommandID::ClearCalibGyro:
+      _clearCalibrate = cmdCallback;
 
     case CommandID::Invalid:
     default:
@@ -67,6 +88,23 @@ bool CommandProcessor::Dispatch(CommandID cmd, const char *data, uint16_t dataLe
     case CommandID::EndTestAttitude:
       return _endTestAttitude(cmd, data, dataLen);
       break;
+    
+    case CommandID::BeginCalibMag:
+    case CommandID::BeginCalibAcc:
+    case CommandID::BeginCalibGyro:
+      return _beginCalibrate(cmd, data, dataLen);
+      break;
+
+    case CommandID::EndCalibMag:
+    case CommandID::EndCalibAcc:
+    case CommandID::EndCalibGyro:
+      return _endCalibrate(cmd, data, dataLen);
+      break;
+    
+    case CommandID::ClearCalibMag:
+    case CommandID::ClearCalibAcc:
+    case CommandID::ClearCalibGyro:
+      return _clearCalibrate(cmd, data, dataLen);
 
     case CommandID::Invalid:
     default:

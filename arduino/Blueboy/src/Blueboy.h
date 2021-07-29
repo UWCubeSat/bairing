@@ -93,6 +93,18 @@ enum class CommandID {
   EndTestAttitude =   0x21,
   EndTestAll =        0x2F,
   
+  BeginCalibMag =     0xE0,
+  EndCalibMag =       0xE1,
+  ClearCalibMag =     0xE2,
+  
+  BeginCalibAcc =     0xE3,
+  EndCalibAcc =       0xE4,
+  ClearCalibAcc =     0xE5,
+  
+  BeginCalibGyro =    0xE6,
+  EndCalibGyro =      0xE7,
+  ClearCalibGyro =    0xE8,
+  
   Invalid = 0xFF,
 };
 

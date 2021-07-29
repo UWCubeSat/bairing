@@ -30,3 +30,32 @@ COMMAND BLUEBOY ENDTESTATT LITTLE_ENDIAN "Stop logging test attitude data"
 
 COMMAND BLUEBOY ENDTESTALL LITTLE_ENDIAN "Stop logging all test data"
   APPEND_ID_PARAMETER ID 8 UINT 47 47 47 "Command ID"
+
+#=================================================================================
+
+COMMAND BLUEBOY BEGINCALIBMAG LITTLE_ENDIAN "Begin calibrating onboard magnetometer"
+  APPEND_ID_PARAMETER ID 8 UINT 224 224 224 "Command ID"
+
+COMMAND BLUEBOY ENDCALIBMAG LITTLE_ENDIAN "End calibrating onboard magnetometer"
+  APPEND_ID_PARAMETER ID 8 UINT 225 225 225 "Command ID"
+
+COMMAND BLUEBOY CLEARCALIBMAG LITTLE_ENDIAN "Clear calibrating onboard magnetometer"
+  APPEND_ID_PARAMETER ID 8 UINT 226 226 226 "Command ID"
+
+COMMAND BLUEBOY BEGINCALIBACC LITTLE_ENDIAN "Begin calibrating onboard accelerometer"
+  APPEND_ID_PARAMETER ID 8 UINT 227 227 227 "Command ID"
+
+COMMAND BLUEBOY ENDCALIBACC LITTLE_ENDIAN "End calibrating onboard accelerometer"
+  APPEND_ID_PARAMETER ID 8 UINT 228 228 228 "Command ID"
+
+COMMAND BLUEBOY CLEARCALIBACC LITTLE_ENDIAN "Clear calibrating onboard accelerometer"
+  APPEND_ID_PARAMETER ID 8 UINT 229 229 229 "Command ID"
+  
+COMMAND BLUEBOY BEGINCALIBGYRO LITTLE_ENDIAN "Begin calibrating onboard gyroscope"
+  APPEND_ID_PARAMETER ID 8 UINT 230 230 230 "Command ID"
+
+COMMAND BLUEBOY ENDCALIBGYRO LITTLE_ENDIAN "End calibrating onboard gyroscope"
+  APPEND_ID_PARAMETER ID 8 UINT 231 231 231 "Command ID"
+
+COMMAND BLUEBOY CLEARCALIBGYRO LITTLE_ENDIAN "Clear calibrating onboard gyroscope"
+  APPEND_ID_PARAMETER ID 8 UINT 232 232 232 "Command ID"

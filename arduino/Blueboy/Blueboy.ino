@@ -15,10 +15,15 @@ const uint32_t SYNC_PATTERN = 0xDEADBEEF;
 // packet messages
 const char *DEFAULT_MSG = "see how the brain plays around";
 const char *SETUP_MSG = "Initialized system";
+const char *CANT_LOG_MSG = "Can't log, stop calibrating first";
 const char *BEGIN_LOG_MSG = "Began logging";
 const char *END_LOG_MSG = "Ended logging";
 const char *RESET_MSG = "Resetting system...";
 const char *UNRECOGNIZED_MSG = "Unrecognized command";
+
+const char *CANT_CALIB_MSG = "Can't calibrate, stop logging first";
+const char *BEGIN_CALIB_MSG = "Began calibration";
+const char *END_CALIB_MSG = "Ended calibration";
 
 char strbuf[64];         // general-purpose string buffer
 char message[32];        // stored message to be echoed on command
@@ -27,8 +32,10 @@ char message[32];        // stored message to be echoed on command
 
 AltSoftSerial bt(RX_PIN, TX_PIN);              // rx on pin 8, tx on pin 9
 
+BlueboyPeripherals peripherals;
+
 CommandProcessor commands(bt, SYNC_PATTERN);    // command processor
-BlueboyTelemetry telemetry(bt, SYNC_PATTERN);   // telemetry sender
+BlueboyTelemetry telemetry(bt, peripherals, SYNC_PATTERN);   // telemetry sender
 
 bool ResetCommand(CommandID cmd, const char *data, uint16_t len) {
   telemetry.SendMessage(RESET_MSG);
@@ -54,20 +61,20 @@ bool MessageCommand(CommandID cmd, const char *data, uint16_t len) {
 }
 
 bool BeginLogCommand(CommandID cmd, const char *data, uint16_t len) {
+  if (peripherals.lsm6ds33.Calibrating()) {
+    // don't start logging if we're calibrating
+    telemetry.SendMessage(CANT_LOG_MSG);
+    return false;
+  }
+  
   telemetry.SendMessage(BEGIN_LOG_MSG);
   uint8_t dev = ((uint8_t) cmd) >> 4;
   uint8_t mode = 0;
   uint16_t period;
 
-  Serial.println("Received begin log: ");
-  Serial.print("  dev: ");
-  Serial.println(dev);
-
   if (len >= 2) {
     period = *((uint16_t *) (data));  // interpret data as a pointer to a short, then dereference it
     telemetry.SetLogPeriod((Device) dev, (unsigned long) period);
-    Serial.print("  period: ");
-    Serial.println(period);
   } else {
     return false;
   }
@@ -75,8 +82,6 @@ bool BeginLogCommand(CommandID cmd, const char *data, uint16_t len) {
   if (len >= 2 + 1) {
     // optional mode
     mode = *((uint8_t *) (data + 2));  // interpret (data + 2) as a pointer to a byte, then dereference it
-    Serial.print("  mode: ");
-    Serial.println(mode);
   }
   
   telemetry.BeginLogging((Device) dev, (AttitudeMode) mode);
@@ -86,10 +91,6 @@ bool BeginLogCommand(CommandID cmd, const char *data, uint16_t len) {
 bool EndLogCommand(CommandID cmd, const char *data, uint16_t len) {
   telemetry.SendMessage(END_LOG_MSG);
   uint8_t dev = ((uint8_t) cmd) >> 4;
-
-  Serial.println("Received end log: ");
-  Serial.print("  dev: ");
-  Serial.println(dev);
   
   telemetry.EndLogging((Device) dev);
   return true;
@@ -99,6 +100,54 @@ bool InvalidCommand(CommandID cmd, const char *data, uint16_t len) {
   sprintf(strbuf, "%s: %02x", UNRECOGNIZED_MSG, cmd);
   telemetry.SendMessage(strbuf);
   return true;
+}
+
+bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
+  if (telemetry.Logging(Device::Own) || telemetry.Logging(Device::Test)) {
+    // don't start calibrating if we're currently logging
+    telemetry.SendMessage(CANT_CALIB_MSG);
+    return false;
+  }
+
+  telemetry.SendMessage(BEGIN_CALIB_MSG);
+  
+  switch (cmd) {
+    case CommandID::BeginCalibMag:
+      break;
+    case CommandID::BeginCalibAcc:
+      break;
+    case CommandID::BeginCalibGyro:
+      peripherals.lsm6ds33.BeginCalibration(SENSOR_TYPE_GYROSCOPE);
+      break;
+  }
+  return false;
+}
+
+bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
+  telemetry.SendMessage(END_CALIB_MSG);
+  
+  switch (cmd) {
+    case CommandID::EndCalibMag:
+      break;
+    case CommandID::EndCalibAcc:
+      break;
+    case CommandID::EndCalibGyro:
+      peripherals.lsm6ds33.EndCalibration();
+      break;
+  }
+  return false;
+}
+
+bool ClearCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
+  switch (cmd) {
+    case CommandID::ClearCalibMag:
+      break;
+    case CommandID::ClearCalibAcc:
+      break;
+    case CommandID::ClearCalibGyro:
+      break;
+  }
+  return false;
 }
 
 void setup() {
@@ -117,6 +166,9 @@ void setup() {
   commands.Bind(CommandID::BeginTestAttitude, &BeginLogCommand);
   commands.Bind(CommandID::EndTestAttitude,   &EndLogCommand);
   commands.Bind(CommandID::Echo,              &MessageCommand);
+  commands.Bind(CommandID::BeginCalibMag,     &BeginCalibrateCommand);
+  commands.Bind(CommandID::EndCalibMag,       &EndCalibrateCommand);
+  commands.Bind(CommandID::ClearCalibMag,     &ClearCalibrateCommand);
 
   telemetry.InitializePeripherals();
 

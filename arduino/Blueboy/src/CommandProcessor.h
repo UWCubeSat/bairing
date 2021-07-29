@@ -35,6 +35,9 @@ class CommandProcessor {
   CommandCallback _endOwnAttitude;     // end logging own attitude command callback
   CommandCallback _beginTestAttitude;  // begin logging test attitude command callback
   CommandCallback _endTestAttitude;    // end logging test attitude command callback
+  CommandCallback _beginCalibrate;     // begin calibrating a sensor
+  CommandCallback _endCalibrate;       // end calibrating a sensor
+  CommandCallback _clearCalibrate;     // clear calibration data for a sensor
   CommandCallback _invalid;            // invalid command callback
 };
 #endif

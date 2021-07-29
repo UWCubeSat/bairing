@@ -24,7 +24,7 @@ constexpr AttitudeMode DEFAULT_ATTITUDE_MODE = AttitudeMode::Raw;
 class BlueboyTelemetry {
  public:
   // Initialize telemetry to use the given serial stream and sync pattern
-  BlueboyTelemetry(AltSoftSerial& serial, uint32_t sync);
+  BlueboyTelemetry(AltSoftSerial& serial, BlueboyPeripherals& peripherals, uint32_t sync);
 
   // Initializes peripherals
   bool InitializePeripherals();
@@ -46,10 +46,13 @@ class BlueboyTelemetry {
 
   // Send an attitude packet belonging to the given device with the given mode
   void SendAttitude(Device dev, AttitudeMode mode, const struct AttitudeData& data);
+  
+  // Return true iff the given device is currently logging
+  bool Logging(Device dev);
  private:
   AltSoftSerial& _serial;
 
-  BlueboyPeripherals _peripherals;
+  BlueboyPeripherals& _peripherals;
   
   char _sendbuf[64];            // send packet buffer, used to build a packet
   PacketSender _sender;         // internal packet sender
