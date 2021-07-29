@@ -42,6 +42,8 @@ class SimpleCalibratedSensor {
   // Reads a calibration sample and adds it to the stored data for the sensor type currently being calibrated.
   // Must be called between a call to BeginCalibration and EndCalibration
   virtual void AddCalibrationSample() = 0;
+  
+  virtual void GetCalibration(struct AxisOffsets *offsets) = 0;
  protected:
   sensors_type_t _currCalibration;
   

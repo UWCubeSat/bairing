@@ -1,12 +1,13 @@
 // Testing calibration code
 #include <Wire.h>
+#include <Math.h>
 #include <Adafruit_Sensor.h>
-#include "CalibratedLSM6DS33.h"
+#include "CalibratedLIS2MDL.h"
 
 // calibration time in milliseconds
-constexpr unsigned long CALIBRATION_TIME = 5000;
+constexpr unsigned long CALIBRATION_TIME = 15000;
 
-CalibratedLSM6DS33 imu;
+CalibratedLIS2MDL mag;
 
 void setup() {
   Serial.begin(9600);
@@ -14,23 +15,24 @@ void setup() {
 
   while (!Serial) { }
 
-  if (!imu.Initialize()) {
+  if (!mag.Initialize()) {
     Serial.println("Failed to find IMU");
   }
 
   unsigned long start = millis();
 
   Serial.println("Beginning calibration...");
-  imu.BeginCalibration(SENSOR_TYPE_GYROSCOPE);
+  mag.BeginCalibration(SENSOR_TYPE_MAGNETIC_FIELD);
   delay(10);
   while (millis() - start < CALIBRATION_TIME) {
-    imu.AddCalibrationSample();
+    mag.AddCalibrationSample();
+    delay(10);
   }
-  imu.EndCalibration();
+  mag.EndCalibration();
   Serial.println("Calibration complete!");
   
   struct AxisOffsets off;
-  imu.GetCalibration(&off);
+  mag.GetCalibration(&off);
   Serial.print("x: ");
   Serial.println(off.xOff, 5);
   Serial.print("y: ");
@@ -40,17 +42,19 @@ void setup() {
 }
 
 void loop() {
-  ///*
   sensors_event_t event;
-  imu.GetEvent(&event, SENSOR_TYPE_GYROSCOPE);
-  Serial.print(event.gyro.x, 5);
+  mag.GetEvent(&event, SENSOR_TYPE_MAGNETIC_FIELD);
+  /*
+  Serial.print(event.magnetic.x, 5);
   Serial.print("\t");
-  Serial.print(event.gyro.y, 5);
+  Serial.print(event.magnetic.y, 5);
   Serial.print("\t");
-  Serial.print(event.gyro.z, 5);
+  Serial.print(event.magnetic.z, 5);
   Serial.print("\t");
   Serial.println();
   //*/
+  float heading = atan2(event.magnetic.y, event.magnetic.x) * 180 / PI;
+  Serial.println(heading);
 
   delay(100);
 }

@@ -38,7 +38,6 @@ bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type
   }
 }
 
-// Keep the system flat/in a position such that it won't rotate for the entirety of calibration
 void CalibratedLSM6DS33::BeginCalibration(sensors_type_t type) {
   if (type == SENSOR_TYPE_GYROSCOPE) {
     _currCalibration = type;
@@ -47,8 +46,7 @@ void CalibratedLSM6DS33::BeginCalibration(sensors_type_t type) {
     // if we ever read larger than 1000 or smaller than -1000 something went REALLY wrong
     _gyroLimits.xMin = _gyroLimits.yMin = _gyroLimits.zMin = 1000;
     _gyroLimits.xMax = _gyroLimits.yMax = _gyroLimits.zMax = -1000;
-    
-    _gyroToDiscard = 10;  // discard the first 10 samples we get
+    _gyroToDiscard = 10;
   }
 }
 

@@ -1,15 +1,15 @@
-#ifndef CALIBRATED_LSM6DS33_H_
-#define CALIBRATED_LSM6DS33_H_
+#ifndef CALIBRATED_LIS2MDL_H_
+#define CALIBRATED_LIS2MDL_H_
 
 #include <Arduino.h>
 #include <Adafruit_Sensor.h>
-#include <Adafruit_LSM6DS33.h>
+#include <Adafruit_LIS2MDL.h>
 
 #include "SimpleCalibratedSensor.h"
 
-class CalibratedLSM6DS33 : public SimpleCalibratedSensor {
+class CalibratedLIS2MDL : public SimpleCalibratedSensor {
  public:  
-  CalibratedLSM6DS33();
+  CalibratedLIS2MDL();
   
   bool Initialize() override;
   
@@ -29,11 +29,13 @@ class CalibratedLSM6DS33 : public SimpleCalibratedSensor {
   
   // Adds a calibration sample for the given sensor type (ignored if this sensor only outputs one type)
   void AddCalibrationSample() override;
+
+  void GetCalibration(struct AxisOffsets *offsets) override { *offsets = _magOffsets; }
  private:
-  Adafruit_LSM6DS33   _lsm6ds33;      // internal lsm6ds33 driver
-  struct AxisLimits   _gyroLimits;    // gyroscope limits
-  struct AxisOffsets  _gyroOffsets;   // gyroscope offsets
-  int _gyroToDiscard;                 // number of samples to discard
+  Adafruit_LIS2MDL   _lis2mdl;        // internal LIS2MDL driver
+  struct AxisLimits   _magLimits;     // magnetometer limits
+  struct AxisOffsets  _magOffsets;    // magnetometer offsets
+  int _magToDiscard;                  // number of samples to discard
   
   // Compensates the sensor value of the given type pointed to by reading
   void Compensate(sensors_event_t *reading, sensors_type_t) override;
