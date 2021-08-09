@@ -10,6 +10,7 @@
 
 using eusci::I2CBus;
 using eusci::I2CMode;
+using namespace blueboy;
 
 int main(void) {
 	WDTCTL = WDTPW | WDTHOLD;	        // stop watchdog timer

@@ -4,6 +4,8 @@
 
 #include "BlueboyReceiver.h"
 
+namespace blueboy {
+
 static bool executing = false;
 static uint8_t command;
 
@@ -75,4 +77,4 @@ void OnBlueboyRequest() {
   }
 }
 
-
+}  // namespace blueboy

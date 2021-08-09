@@ -5,44 +5,24 @@
 #ifndef SRC_BLUEBOYRECEIVER_H_
 #define SRC_BLUEBOYRECEIVER_H_
 
+#include <BlueboyInterface.h>
 #include "eUSCI/i2c.h"
 
 using eusci::I2CBus;
 
+namespace blueboy {
+
 constexpr I2CBus::Handle BLUEBOY_BUS = I2CBus::B1;
-
-struct Vector {
-  union {
-    struct {
-      float x;
-      float y;
-      float z;
-    };
-    struct {
-      float azimuth;
-      float pitch;
-      float roll;
-    };
-  };
-  char __padding[4];  // get to a total size of 16 bytes
-};
-
-struct Quaternion {
-  float x;
-  float y;
-  float z;
-  float w;
-};
 
 struct BlueboyData {
   union {
     char data[16];                    // raw bytes
-    struct Vector acceleration;       // m/s^2
-    struct Vector magnetic_field;     // uT
-    struct Vector angular_velocity;   // rad/s
+    struct Vector3 acceleration;       // m/s^2
+    struct Vector3 magnetic_field;     // uT
+    struct Vector3 angular_velocity;   // rad/s
 
     union {
-      struct Vector euler;            // radians
+      struct Vector3 euler;            // radians
       struct Quaternion quaternion;   // ???
     } orientation;
   };
@@ -59,5 +39,7 @@ enum class BlueboyDataType {
 
 void OnBlueboyReceive(int bufsize);
 void OnBlueboyRequest();
+
+}  // namespace blueboy
 
 #endif /* SRC_BLUEBOYRECEIVER_H_ */
