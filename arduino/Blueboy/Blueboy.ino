@@ -108,7 +108,7 @@ bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
 
   telemetry.SendMessage(BEGIN_CALIB_MSG);
   
-  return false;
+  return true;
 }
 
 bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {

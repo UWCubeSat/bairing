@@ -18,9 +18,10 @@ bool CalibratedLSM6DS33::Initialize() {
 }
 
 bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
+  bool success;
   switch (type) {
     case SENSOR_TYPE_GYROSCOPE:
-      bool success = _lsm6ds33.getGyroSensor()->getEvent(event);
+      success = _lsm6ds33.getGyroSensor()->getEvent(event);
       
       /*
       Serial.print("Raw: (");
@@ -31,7 +32,16 @@ bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type
       
       return success;
     case SENSOR_TYPE_ACCELEROMETER:
-      return _lsm6ds33.getAccelerometerSensor()->getEvent(event);
+      success = _lsm6ds33.getAccelerometerSensor()->getEvent(event);
+      
+      /*
+      Serial.print("Raw: (");
+      Serial.print(event->acceleration.x, 4); Serial.print(", ");
+      Serial.print(event->acceleration.y, 4); Serial.print(", ");
+      Serial.print(event->acceleration.z, 4); Serial.println(")");
+      //*/
+      
+      return success;
     case SENSOR_TYPE_AMBIENT_TEMPERATURE:
       return _lsm6ds33.getTemperatureSensor()->getEvent(event);
     default:

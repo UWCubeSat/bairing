@@ -49,7 +49,7 @@ bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
   lis2mdl.GetEvent(&event);
   data->raw.magnetic = *(struct Vector *)&event.magnetic;
   
-  lsm6ds33.GetEvent(&event, SENSOR_TYPE_ACCELEROMETER);
+  lsm6ds33.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER);
   data->raw.acceleration = *(struct Vector *)&event.acceleration;
   
   lsm6ds33.GetEvent(&event, SENSOR_TYPE_GYROSCOPE);
