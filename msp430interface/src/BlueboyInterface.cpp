@@ -9,29 +9,46 @@
 
 namespace blueboy {
 
+BlueboyInterface::BlueboyInterface(I2CBus::Handle handle, uint8_t whoami = 0x3A) : _handle(handle), _receivingAddr(true) {
+  /*
+  // TESTING
+  for (int i = 256; i != 0; i--) {
+    _set<uint8_t>(i, i);
+  }
+  */
+  memset(_addressSpace, '\0', 256);
+  _set<uint8_t>(WhoAmI, whoami);
+}
+
 void BlueboyInterface::OnReceive(int bufsize) {
   // if receiving address, take first byte to be the address
   // otherwise, write values in buffer to the address
   //   if incremental addressing enabled, increment address
 
-  // if (addr) {
-  //   _reqAddr = i2c.read()
-  //   addr = false;
-  // } else {
-  //   while (i2c.available()) {
-  //     _set<uint8_t>(_reqAddr, i2c.read())
-  //     _reqAddr++
-  //   }
-  //   addr = true
-  // }
+  I2CBus *bus = eusci::GetI2C(_handle);
+
+  if (_receivingAddr) {
+    _reqAddr = bus->Read();
+    _receivingAddr = false;
+  } else {
+    while (bus->Available()) {
+      uint8_t read = bus->Read();
+      _set<uint8_t>(_reqAddr, read);
+      _reqAddr++;
+    }
+    _receivingAddr = true;
+  }
 }
 
 void BlueboyInterface::OnRequest() {
   // write the value at the stored address to i2c
   //   if incremental addressing enabled, increment address
 
-  // i2c.write(_get<uint8_t>(_reqAddr))
-  // _reqAddr++
+  I2CBus *bus = eusci::GetI2C(_handle);
+
+  bus->Write(_get<uint8_t>(_reqAddr));
+  _reqAddr++;
+  _receivingAddr = true;
 }
 
 bool BlueboyInterface::ShouldReset() {

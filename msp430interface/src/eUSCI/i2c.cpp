@@ -239,11 +239,10 @@ void I2CBus::ISRHandler() {
     case USCI_I2C_UCTXIFG2:         // Transmit buffer empty in slave mode on address 2
     case USCI_I2C_UCTXIFG1:         // Transmit buffer empty in slave mode on address 1
     case USCI_I2C_UCTXIFG0:         // Transmit buffer empty in slave mode on address 0
-      if (!_requested) {
+      if (_wbuf.Empty()) {
         // no bytes currently on the write buffer, ask the user for some
         // expected that the user calls write() one or more times in onRequest
         _onRequest();
-        _requested = true;
       }
 
       // only actually transmit when we have something to write

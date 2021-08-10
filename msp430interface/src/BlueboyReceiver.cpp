@@ -6,10 +6,20 @@
 
 namespace blueboy {
 
-static bool executing = false;
-static uint8_t command;
+BlueboyInterface Interface(BLUEBOY_BUS);
+
+void InitializeBlueboyInterface() {
+  I2CBus *bus = eusci::GetI2C(BLUEBOY_BUS);
+
+  bus->Begin(0x3A);
+
+  bus->OnReceive(&OnBlueboyReceive);
+  bus->OnRequest(&OnBlueboyRequest);
+}
 
 void OnBlueboyReceive(int bufsize) {
+  Interface.OnReceive(bufsize);
+  /*
   I2CBus *bus = eusci::GetI2C(BLUEBOY_BUS);
   volatile uint8_t test;
 
@@ -19,11 +29,12 @@ void OnBlueboyReceive(int bufsize) {
     test = command;
     executing = true;
   }
+  */
 }
 
-static int queried = 0;
-
 void OnBlueboyRequest() {
+  Interface.OnRequest();
+  /*
   struct BlueboyData data;
   I2CBus *bus = eusci::GetI2C(BLUEBOY_BUS);
   queried++;
@@ -75,6 +86,7 @@ void OnBlueboyRequest() {
     }
     executing = false;
   }
+  */
 }
 
 }  // namespace blueboy
