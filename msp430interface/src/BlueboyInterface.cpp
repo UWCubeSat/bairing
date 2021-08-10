@@ -62,7 +62,7 @@ bool BlueboyInterface::ShouldOperate() {
 }
 
 bool BlueboyInterface::ShouldCalibrate(Sensor sensor) {
-  // return bit [sensor] of Calibration byte
+  // return sensor'th bit of Calibration byte
   return (_get<uint8_t>(Calibration) & (1 << sensor)) != 0;
 }
 
@@ -113,13 +113,13 @@ void BlueboyInterface::UpdateQuaternionData(const struct Quaternion& quaternion)
 
 void BlueboyInterface::UpdateGeneralFloatData(int index, float val) {
   // set the float value of the index'th general float to value
-  _set<float>(GenFloats + index, val);
+  _set<float>(GenFloats + index * 4, val);
 }
 
 void BlueboyInterface::UpdateGeneralBufferData(int index, const char *buffer) {
   // copies the bytes from buffer to the index'th general buffer
   for (int i = 0; i < 16; i++) {
-    _set<uint8_t>(GenBufs + index + i, buffer[i]);
+    _set<uint8_t>(GenBufs + index * 16 + i, buffer[i]);
   }
 }
 
