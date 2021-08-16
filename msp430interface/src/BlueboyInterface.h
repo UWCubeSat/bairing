@@ -31,6 +31,8 @@ struct Vector3 {
     };
   };
   char __padding[4];  // get to a total size of 16 bytes
+  
+  Vector3(float x, float y, float z) : x(x), y(y), z(z) { }
 };
 
 struct Quaternion {
@@ -38,6 +40,7 @@ struct Quaternion {
   float y;
   float z;
   float w;
+  Quaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) { }
 };
 
 // Addresses
@@ -68,7 +71,7 @@ public:
     Gyroscope = 2
   };
 
-  BlueboyInterface(I2CBus::Handle handle);
+  BlueboyInterface(I2CBus::Handle handle, uint8_t whoami);
 
   void OnReceive(int bufsize);
   void OnRequest();

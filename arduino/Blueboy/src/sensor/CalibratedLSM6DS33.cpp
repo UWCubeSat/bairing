@@ -24,6 +24,11 @@ bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type
       success = _lsm6ds33.getGyroSensor()->getEvent(event);
       
       /*
+      // modify vector s.t. we get readings with right hand axes
+      event->gyro.z = -event->gyro.z;
+      &/
+      
+      /*
       Serial.print("Raw: (");
       Serial.print(event->gyro.x, 4); Serial.print(", ");
       Serial.print(event->gyro.y, 4); Serial.print(", ");
@@ -33,6 +38,10 @@ bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type
       return success;
     case SENSOR_TYPE_ACCELEROMETER:
       success = _lsm6ds33.getAccelerometerSensor()->getEvent(event);
+      
+      /*
+      event->acceleration.z = -event->acceleration.z;
+      */
       
       /*
       Serial.print("Raw: (");

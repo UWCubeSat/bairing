@@ -20,6 +20,14 @@ bool CalibratedLIS2MDL::GetEventRaw(sensors_event_t *event, sensors_type_t type)
   bool success = _lis2mdl.getEvent(event);
   
   /*
+  // modify vector s.t. we get readings with right hand axes
+  float tmp = event->magnetic.x;
+  event->magnetic.x = -event->magnetic.y;
+  event->magnetic.y = -event->magnetic.x;
+  event->magnetic.z = -event->magnetic.z;
+  */
+  
+  /*
   Serial.print("Raw: (");
   Serial.print(event->magnetic.x, 4); Serial.print(", ");
   Serial.print(event->magnetic.y, 4); Serial.print(", ");

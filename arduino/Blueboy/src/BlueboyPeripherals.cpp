@@ -4,7 +4,7 @@ constexpr uint8_t ONEU_ADDRESS = 0x3A;
 
 BlueboyPeripherals::BlueboyPeripherals(): lsm6ds33(CalibratedLSM6DS33()),
                                           lis2mdl(CalibratedLIS2MDL()),
-                                          _oneU(ONEU_ADDRESS) , _initialized(false) { }
+                                          oneU() , _initialized(false) { }
 
 bool BlueboyPeripherals::Initialize() {
   if (_initialized) {
@@ -23,7 +23,7 @@ bool BlueboyPeripherals::Initialize() {
     return false;
   }
 
-  if (!_oneU.Initialize()) {
+  if (!oneU.Initialize()) {
     Serial.println(F("Failed to find test system"));
     return false;
   }
@@ -59,6 +59,7 @@ bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
 }
 
 bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {
+  /*
   struct OneUData oud;
   if (!_oneU.ReadData(OneUDataType::Mag, &oud)) {
     return false;
@@ -74,6 +75,20 @@ bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {
     return false;
   }
   data->raw.gyro = oud.raw.gyro;
+  
+  return true;
+  */
+  
+  sensors_event_t event;
+  
+  oneU.GetEvent(&event, SENSOR_TYPE_MAGNETIC_FIELD);
+  data->raw.magnetic = *(struct Vector *)&event.magnetic;
+  
+  oneU.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER);
+  data->raw.acceleration = *(struct Vector *)&event.acceleration;
+  
+  oneU.GetEvent(&event, SENSOR_TYPE_GYROSCOPE);
+  data->raw.gyro = *(struct Vector *)&event.gyro;
   
   return true;
 }

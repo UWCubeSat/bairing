@@ -6,15 +6,21 @@
 
 namespace blueboy {
 
-BlueboyInterface Interface(BLUEBOY_BUS);
+constexpr uint8_t ADDRESS = 0x3A;
+
+BlueboyInterface Interface(BLUEBOY_BUS, ADDRESS);
 
 void InitializeBlueboyInterface() {
   I2CBus *bus = eusci::GetI2C(BLUEBOY_BUS);
 
-  bus->Begin(0x3A);
+  bus->Begin(ADDRESS);
 
   bus->OnReceive(&OnBlueboyReceive);
   bus->OnRequest(&OnBlueboyRequest);
+  
+  Interface.UpdateSensorData(BlueboyInterface::Magnetometer,  Vector3(0.0, 1.0, 2.0));
+  Interface.UpdateSensorData(BlueboyInterface::Accelerometer, Vector3(3.0, 4.0, 5.0));
+  Interface.UpdateSensorData(BlueboyInterface::Gyroscope,     Vector3(6.0, 7.0, 8.0));
 }
 
 void OnBlueboyReceive(int bufsize) {

@@ -25,11 +25,9 @@ class BlueboyPeripherals {
   
   CalibratedLSM6DS33 lsm6ds33;
   CalibratedLIS2MDL lis2mdl;
-  
- private:
 
-  OneUDriver _oneU;             // driver for attached 1U system
-  
+  OneUDriver oneU;             // driver for attached 1U system
+ private:
   bool _initialized;
 };
 

@@ -6,16 +6,11 @@
  */
 
 #include "BlueboyInterface.h"
+#include <cstring>
 
 namespace blueboy {
 
-BlueboyInterface::BlueboyInterface(I2CBus::Handle handle, uint8_t whoami = 0x3A) : _handle(handle), _receivingAddr(true) {
-  /*
-  // TESTING
-  for (int i = 256; i != 0; i--) {
-    _set<uint8_t>(i, i);
-  }
-  */
+BlueboyInterface::BlueboyInterface(I2CBus::Handle handle, uint8_t whoami) : _handle(handle), _receivingAddr(true) {
   memset(_addressSpace, '\0', 256);
   _set<uint8_t>(WhoAmI, whoami);
 }
