@@ -6,6 +6,7 @@ constexpr uint8_t ONEU_ADDR = 0x3A;
 
 OneUDriver::OneUDriver() { }
 
+// TODO make these constants
 static uint8_t addrFromType(sensors_type_t type) {
   switch (type) {
     case SENSOR_TYPE_MAGNETIC_FIELD:
@@ -52,7 +53,7 @@ static bool readAddress(uint8_t addr, uint8_t len, char *buf, bool stop = true) 
     return false;
   }
   
-  uint8_t received = Wire.requestFrom(ONEU_ADDR, len, stop);
+  uint8_t received = Wire.requestFrom(ONEU_ADDR, len, (uint8_t) stop);
   if (received != len) {
     Serial.print(F("  OneUDriver failed to request "));
     Serial.print(len);
@@ -65,7 +66,9 @@ static bool readAddress(uint8_t addr, uint8_t len, char *buf, bool stop = true) 
   
   for (int i = 0; i < len; i++) {
     // there should be len bytes in the Wire buffer
-    buf[i] = Wire.read();
+    if (Wire.available()) {
+      buf[i] = Wire.read();
+    }
   }
   
   return true;
@@ -101,7 +104,11 @@ bool OneUDriver::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
   if (addr) {
     char *raw = (char *) event->data;
     
-    return readAddress(addr, 12, raw);
+    bool result = readAddress(addr, 12, raw);
+    
+    delay(1);  // next read returns garbage data unless a miniscule delay exists, TODO figure out why instead of using this hack
+    
+    return result;
   }
   return false;
 }

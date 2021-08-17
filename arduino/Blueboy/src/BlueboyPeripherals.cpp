@@ -58,36 +58,22 @@ bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
   return true;
 }
 
-bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {
-  /*
-  struct OneUData oud;
-  if (!_oneU.ReadData(OneUDataType::Mag, &oud)) {
-    return false;
-  }
-  data->raw.magnetic = oud.raw.magnetic;
-  
-  if (!_oneU.ReadData(OneUDataType::Acc, &oud)) {
-    return false;
-  }
-  data->raw.acceleration = oud.raw.acceleration;
-  
-  if (!_oneU.ReadData(OneUDataType::Gyro, &oud)) {
-    return false;
-  }
-  data->raw.gyro = oud.raw.gyro;
-  
-  return true;
-  */
-  
+bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {  
   sensors_event_t event;
   
-  oneU.GetEvent(&event, SENSOR_TYPE_MAGNETIC_FIELD);
+  if (!oneU.GetEventRaw(&event, SENSOR_TYPE_MAGNETIC_FIELD)) {
+    return false;
+  }
   data->raw.magnetic = *(struct Vector *)&event.magnetic;
   
-  oneU.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER);
+  if (!oneU.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER)) {
+    return false;
+  }
   data->raw.acceleration = *(struct Vector *)&event.acceleration;
   
-  oneU.GetEvent(&event, SENSOR_TYPE_GYROSCOPE);
+  if (!oneU.GetEventRaw(&event, SENSOR_TYPE_GYROSCOPE)) {
+    return false;
+  }
   data->raw.gyro = *(struct Vector *)&event.gyro;
   
   return true;

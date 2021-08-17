@@ -98,11 +98,14 @@ bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   switch (cmd) {
     case CommandID::BeginCalibMag:
       peripherals.lis2mdl.BeginCalibration(SENSOR_TYPE_MAGNETIC_FIELD);
+      peripherals.oneU.BeginCalibration(SENSOR_TYPE_MAGNETIC_FIELD);
       break;
     case CommandID::BeginCalibAcc:
+      peripherals.oneU.BeginCalibration(SENSOR_TYPE_ACCELEROMETER);
       break;
     case CommandID::BeginCalibGyro:
       peripherals.lsm6ds33.BeginCalibration(SENSOR_TYPE_GYROSCOPE);
+      peripherals.oneU.BeginCalibration(SENSOR_TYPE_GYROSCOPE);
       break;
   }
 
@@ -116,12 +119,15 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   switch (cmd) {
     case CommandID::EndCalibMag:
       peripherals.lis2mdl.EndCalibration();
+      peripherals.oneU.EndCalibration();
       peripherals.lis2mdl.GetCalibration(&off);
       break;
     case CommandID::EndCalibAcc:
+      peripherals.oneU.EndCalibration();
       break;
     case CommandID::EndCalibGyro:
       peripherals.lsm6ds33.EndCalibration();
+      peripherals.oneU.EndCalibration();
       peripherals.lsm6ds33.GetCalibration(&off);
       break;
     default:
