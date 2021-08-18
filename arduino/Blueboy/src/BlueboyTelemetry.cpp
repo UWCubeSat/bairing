@@ -1,3 +1,9 @@
+/*!
+ * @file BlueboyTelemetry.cpp
+ * @author Sebastian S.
+ * @brief Implementation of BlueboyTelemetry.h
+ */
+
 #include "BlueboyTelemetry.h"
 
 BlueboyTelemetry::BlueboyTelemetry(AltSoftSerial& serial,
@@ -5,11 +11,12 @@ BlueboyTelemetry::BlueboyTelemetry(AltSoftSerial& serial,
                                    uint32_t sync): _serial(serial),
                                                    _sender(PacketSender(_sendbuf, sync)),
                                                    _peripherals(peripherals) {
+  // Initialize settings to defaults
   for (int i = 0; i < 2; i++) {
     _settings[i].sendDelay = DEFAULT_LOG_DELAY;
     _settings[i].lastSent = 0;
     _settings[i].logging = false;
-    _settings[i].mode = AttitudeMode::Raw;
+    _settings[i].mode = DEFAULT_ATTITUDE_MODE;
   }
 }
 
@@ -38,8 +45,7 @@ bool BlueboyTelemetry::Logging(Device dev) {
   return _settings[index].logging;
 }
 
-static char msgbuf[64];
-
+static char msgbuf[64];  // buffer to copy flash messages into
 void BlueboyTelemetry::SendMessage(const __FlashStringHelper *str) {
   strcpy_P(msgbuf, (const char *)str);
   SendMessage(msgbuf);
@@ -98,13 +104,13 @@ void BlueboyTelemetry::Tick() {
   
   for (int i = 0; i < 2; i++) {
     if (_settings[i].logging && (millis() - _settings[i].lastSent >= _settings[i].sendDelay)) {
+      // we are currently logging on this device, and it has been at least as long as the collection period
       struct AttitudeData data;
 
       Device dev = (Device) (i + 1);
   
       // send attitude
       if (_settings[i].mode == AttitudeMode::Raw) {
-        
         _peripherals.ReadRaw(dev, &data);
       }
   

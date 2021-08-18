@@ -1,8 +1,15 @@
+/*!
+ * @file Messages.h
+ * @author Sebastian S.
+ * @brief Defines for messages stored in flash memory.
+ *
+ * The F() macro, which stores strings in flash memory, cannot be used outside of functions, so to
+ * use it to save on dynamic memory we can't store them as variables
+ */
+
 #ifndef MESSAGES_H_
 #define MESSAGES_H_
 
-// Packet messages stored in flash memory
-// Defines are gross, but we're not allowed to use F() outside of functions :(
 #define DEFAULT_MSG         F("see how the brain plays around")
 #define SETUP_MSG           F("Initialized system")
 #define CANT_LOG_MSG        F("Can't log, stop calibrating first")

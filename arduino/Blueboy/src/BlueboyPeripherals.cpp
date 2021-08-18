@@ -1,10 +1,16 @@
+/*!
+ * @file BlueboyPeripherals.cpp
+ * @author Sebastian S.
+ * @brief Implementation of BlueboyPeripherals.h
+ */
+
 #include "BlueboyPeripherals.h"
 
+/*!
+ * @var uint8_t ONEU_ADDRESS
+ * I2C address of the 1U test system.
+ */
 constexpr uint8_t ONEU_ADDRESS = 0x3A;
-
-BlueboyPeripherals::BlueboyPeripherals(): lsm6ds33(CalibratedLSM6DS33()),
-                                          lis2mdl(CalibratedLIS2MDL()),
-                                          oneU() , _initialized(false) { }
 
 bool BlueboyPeripherals::Initialize() {
   if (_initialized) {
@@ -46,13 +52,20 @@ bool BlueboyPeripherals::ReadRaw(Device dev, struct AttitudeData *data) {
 bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
   sensors_event_t event;
   
-  lis2mdl.GetEvent(&event);
+  // Adafruit's unified sensor vector has to be converted to our vectors
+  if (!lis2mdl.GetEvent(&event)) {
+    return false;
+  }
   data->raw.magnetic = *(struct Vector *)&event.magnetic;
   
-  lsm6ds33.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER);
+  if (!lsm6ds33.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER)) {
+    return false;
+  }
   data->raw.acceleration = *(struct Vector *)&event.acceleration;
   
-  lsm6ds33.GetEvent(&event, SENSOR_TYPE_GYROSCOPE);
+  if (!lsm6ds33.GetEvent(&event, SENSOR_TYPE_GYROSCOPE)) {
+    return false;
+  }
   data->raw.gyro = *(struct Vector *)&event.gyro;
   
   return true;
@@ -61,6 +74,7 @@ bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
 bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {  
   sensors_event_t event;
   
+  // Adafruit's unified sensor vector has to be converted to our vectors
   if (!oneU.GetEventRaw(&event, SENSOR_TYPE_MAGNETIC_FIELD)) {
     return false;
   }
@@ -89,10 +103,12 @@ bool BlueboyPeripherals::ReadOrientation(Device dev, struct AttitudeData *data) 
   return false;
 }
 
+//! @todo finish this
 bool BlueboyPeripherals::ReadOwnOrientation(struct AttitudeData *data) {
   return false;
 }
 
+//! @todo finish this
 bool BlueboyPeripherals::ReadTestOrientation(struct AttitudeData *data) {
   return false;
 }

@@ -1,6 +1,15 @@
+/*!
+ * @file CommandProcessor.cpp
+ * @author Sebastian S.
+ * @brief Implementation of CommandProcessor.h
+ */
+
 #include "CommandProcessor.h"
 
-// no-op command, used as the default behavior for commands before being bound
+/*!
+ * @fn NOOPCMD
+ * Definition of a no-op command callback, to be used as the "default" command behavior before any binding.
+ */
 constexpr bool NOOPCMD (CommandID cmd, const char *data, uint16_t len) { return false; }
 
 CommandProcessor::CommandProcessor(AltSoftSerial& serial, uint32_t sync) : _serial(serial), _receiver(PacketReceiver(_rcvbuf, sync)) {
@@ -119,8 +128,10 @@ bool CommandProcessor::Dispatch(CommandID cmd, const char *data, uint16_t dataLe
 
 void CommandProcessor::Tick() {
   while (_serial.available()) {
+    // read a single byte at a time, add it to a packet being built
     char readbyte = _serial.read();
     if (_receiver.AddByte(readbyte)) {
+      // a full packet was just received
       _receiver.PrintPacketInfo();
       
       CommandID cmd = (CommandID) _receiver.GetPacketID();

@@ -1,7 +1,7 @@
 /*!
  * @file Blueboy.h
  * @author Sebastian S.
- * @brief Common data structures and command/telemetry constants for Blueboy
+ * @brief Common data structures and command/telemetry constants for Blueboy.
  */
 
 #ifndef BLUEBOY_H_
@@ -9,12 +9,16 @@
 
 #include <stdint.h>
 
-/**
+/*
  * Common data structures
  */
 
-// 16-byte vector with 3 floats and 4 bytes of padding
-// interpretable as a vector of x, y, z, or a vector of roll, pitch, heading
+/*!
+ * @struct Vector
+ * @brief A 3D vector interpretable as x, y, z, or roll, pitch, heading
+ * 
+ * A 16-byte vector with 3 floats and 4 bytes of padding.
+ */
 struct Vector {
   union {
 	  struct {
@@ -32,7 +36,10 @@ struct Vector {
   char reserved[4];
 };
 
-// 16-byte quaternion
+/*!
+ * @struct Quaternion
+ * @brief A quaternion interpretable as x, y, z, w
+ */
 struct Quaternion {
   float x;
   float y;
@@ -41,6 +48,12 @@ struct Quaternion {
 };
 
 // interpretable either as 3 vectors of raw data, a vector of euler angles, or a quaternion
+/*!
+ * @struct AttitudeData
+ * @brief A representation of a single attitude data packet.
+ *
+ * Interpretable either as three vectors of raw data, orientation in euler angles, or orientation as a quaternion.
+ */
 struct AttitudeData {
   union {
     struct {
@@ -56,35 +69,38 @@ struct AttitudeData {
   };
 };
 
-// interpretable either as a vector of magnetometer, accelerometer, or gyroscope data, a vector of euler angles, or a quaternion
-struct OneUData {
-  union {
-    union raw {
-      struct Vector magnetic;           // uT
-      struct Vector acceleration;       // m/s^2
-      struct Vector gyro;               // rad/s
-    } raw;
-  
-    union {
-      struct Vector euler;              // radians
-      struct Quaternion quaternion;     // ???
-    } orientation;
-  };
-};
-
-// device id
+/*! 
+ * @enum Device
+ * Device id
+ */
 enum class Device {
+  /*!
+   * @var Device Device::Own
+   * Represents the Blueboy system itself.
+   */
   Own =   0x01,
+  
+  /*!
+   * @var Device Device::Test
+   * Represents the mounted test system.
+   */
   Test =  0x02
 };
 
-/**
+/*
  * Command and telemetry constants
  */
 
+/*!
+ * @var uint32_t SYNC_PATTERN
+ * The 32-bit sync pattern that should be sent or recognized before every packet. Bytes should be sent/received in little endian.
+ */
 constexpr uint32_t SYNC_PATTERN = 0xDEADBEEF;
 
-// Command IDs
+/*! 
+ * @enum CommandID
+ * IDs of commands that can be recognized.
+ */
 enum class CommandID {
   Reset =             0x00,
   Echo =              0x01,
@@ -112,10 +128,13 @@ enum class CommandID {
   Invalid = 0xFF,
 };
 
-// Telemetry IDs
+/*! 
+ * @enum TelemetryID
+ * IDs of telemetry packets to use.
+ */
 enum class TelemetryID {
-  Status =  0x00,
-  Message = 0x01,
+  Status =                  0x00,
+  Message =                 0x01,
 
   OwnAttitudeRaw =          0x10,
   OwnAttitudeEuler =        0x11,
@@ -126,20 +145,14 @@ enum class TelemetryID {
   TestAttitudeQuaternion =  0x12,
 };
 
-// data type offsets
-enum class OneUDataType {
-  Mag =         0x00,
-  Acc =         0x01,
-  Gyro =        0x02,
-  Quaternion =  0x03,
-  Euler =       0x04,
-};
-
-// mode to send attitude data in over bluetooth
+/*! 
+ * @enum AttitudeMode
+ * Mode to send attitude data in over bluetooth.
+ */
 enum class AttitudeMode {
-  Raw = 0,
-  Euler = 1,
-  Quaternion = 2
+  Raw =         0x00,
+  Euler =       0x01,
+  Quaternion =  0x02
 };
 
 #endif
