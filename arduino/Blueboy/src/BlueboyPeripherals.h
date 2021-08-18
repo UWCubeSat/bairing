@@ -23,6 +23,8 @@ class BlueboyPeripherals {
   bool ReadOwnOrientation(struct AttitudeData *data);
   bool ReadTestOrientation(struct AttitudeData *data);
   
+  bool Calibrating() { return lsm6ds33.Calibrating() || lis2mdl.Calibrating(); }
+  
   CalibratedLSM6DS33 lsm6ds33;
   CalibratedLIS2MDL lis2mdl;
 
