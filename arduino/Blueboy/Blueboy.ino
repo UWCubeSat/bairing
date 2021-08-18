@@ -43,7 +43,7 @@ bool ResetCommand(CommandID cmd, const char *data, uint16_t len) {
   telemetry.SendMessage(RESET_MSG);
   delay(100);   // delay to allow message to be sent asynchronously
   
-  // TODO request reset from peripherals and 1U
+  telemetry.oneU.Reset();
   
   digitalWrite(RST_PIN, LOW);  // pull pin low for reset
   

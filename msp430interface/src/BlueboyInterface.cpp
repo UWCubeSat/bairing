@@ -1,8 +1,7 @@
-/*
- * BlueboyInterface.cpp
- *
- *  Created on: Aug 6, 2021
- *      Author: Sebastian S.
+/*!
+ * @file BlueboyInterface.cpp
+ * @author Sebastian S.
+ * @brief Implementation of BlueboyInterface.cpp
  */
 
 #include "BlueboyInterface.h"

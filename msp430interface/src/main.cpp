@@ -1,5 +1,7 @@
-/*
- * A proof of concept for a test system mounted to Blueboy, abiding by the current iteration of the protocol
+/*!
+ * @file main.cpp
+ * @author Sebastian S.
+ * @brief Main file for the Blueboy Interface proof of concept
  */
 
 #include <msp430plus.h>
