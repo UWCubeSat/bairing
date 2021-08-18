@@ -19,12 +19,22 @@ bool CalibratedLIS2MDL::Initialize() {
 bool CalibratedLIS2MDL::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
   bool success = _lis2mdl.getEvent(event);
   
-  /*
-  // modify vector s.t. we get readings with right hand axes
+  // x = x
+  // y = -z
+  // z = y
+  
+  
+  
+  // swap x and y axes and invert them to match axes on the LSM6DS33
   float tmp = event->magnetic.x;
   event->magnetic.x = -event->magnetic.y;
-  event->magnetic.y = -event->magnetic.x;
-  event->magnetic.z = -event->magnetic.z;
+  event->magnetic.y = -tmp;
+  
+  
+  /*
+  float tmp = event->magnetic.y;
+  event->magnetic.y = -event->magnetic.z;
+  event->magnetic.z = tmp;
   */
   
   /*

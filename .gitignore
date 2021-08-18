@@ -37,3 +37,6 @@ outputs/
 # CCS
 msp430interface/Debug/
 msp430interface/.launches/
+
+# python
+monitor/__pycache__

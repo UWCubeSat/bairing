@@ -19,9 +19,20 @@ bool CalibratedLSM6DS33::Initialize() {
 
 bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
   bool success;
+  float tmp;
   switch (type) {
     case SENSOR_TYPE_GYROSCOPE:
       success = _lsm6ds33.getGyroSensor()->getEvent(event);
+      
+      // x = -y
+      // y = -z
+      // z = -x
+      /*
+      tmp = event->gyro.x;
+      event->gyro.x = -event->gyro.y;
+      event->gyro.y = -event->gyro.z;
+      event->gyro.z = -tmp;
+      */
       
       /*
       // modify vector s.t. we get readings with right hand axes
@@ -38,6 +49,11 @@ bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type
       return success;
     case SENSOR_TYPE_ACCELEROMETER:
       success = _lsm6ds33.getAccelerometerSensor()->getEvent(event);
+      
+      tmp = event->acceleration.x;
+      event->acceleration.x = -event->acceleration.y;
+      event->acceleration.y = -event->acceleration.z;
+      event->acceleration.z = -tmp;
       
       /*
       event->acceleration.z = -event->acceleration.z;

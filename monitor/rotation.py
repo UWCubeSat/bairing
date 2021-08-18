@@ -19,7 +19,6 @@ def begin(ser):
   ser.write(b'\x32\0x00')  # 50 ms period
   
 def receive(ser):
-  print("receiving")
   recognized = False
   pattern = [ 0, 0, 0, 0 ]
   while not recognized:
@@ -55,8 +54,9 @@ def main():
   
   begin(ser)
 
-  madgwick = Madgwick(Dt = 0.05)
-  q_last = np.array([0.7071, 0.0, 0.7071, 0.0])
+  # q_last = np.array([0.7071, -0.7071, 0.0, 0.0])
+  q_last = np.array([1., 0., 0., 0.])
+  madgwick = Madgwick(Dt = 0.05, q0 = q_last)
   
   renderer = CubeRenderer()
   
@@ -68,7 +68,8 @@ def main():
       acc = raw[3:6]
       gyro = raw[6:9]
       
-      q_last = madgwick.updateMARG(q_last, gyr=gyro, acc=acc, mag=mag)
+      # q_last = madgwick.updateMARG(q_last, gyr=gyro, acc=acc, mag=mag)
+      q_last = madgwick.updateIMU(q_last, gyr=gyro, acc=acc)
       print(q_last)
       renderer.render(q_last)
 
