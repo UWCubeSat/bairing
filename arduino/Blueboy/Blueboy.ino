@@ -28,15 +28,16 @@ CommandProcessor commands(bt, SYNC_PATTERN);
 BlueboyTelemetry telemetry(bt, peripherals, SYNC_PATTERN);
 
 /*!
- * @brief Callback to be invoked on a reset command. Resets the system and sends a reset request to the connected test system.
- * 
- * Sends a message over telemetry reporting the beginning of the reset sequence.
+ * @brief Callback to be invoked on a reset command.
  * @param cmd The ID of the command that invoked this callback
  * @param data Byte buffer containing data that may have been passed by the command
  * @param len Length of the byte buffer
  * @return False (this callback should never be returned from)
  * 
  * @todo Request resets from peripherals and the test system
+ * 
+ * Resets the system and sends a reset request to the connected test system.
+ * Sends a message over telemetry reporting the beginning of the reset sequence.
  */
 bool ResetCommand(CommandID cmd, const char *data, uint16_t len) {
   telemetry.SendMessage(RESET_MSG);
@@ -50,12 +51,13 @@ bool ResetCommand(CommandID cmd, const char *data, uint16_t len) {
 }
 
 /*!
- * @brief Callback to be invoked on a message command. Sends a message over telemetry containing a stored
- * message, or updates the stored message with a received string and echoes it.
+ * @brief Callback to be invoked on a message command.
  * @param cmd The ID of the command that invoked this callback
  * @param data Byte buffer containing data that may have been passed by the command
  * @param len Length of the byte buffer
  * @return True
+ *
+ * Sends a message over telemetry containing a stored message, or updates the stored message with a received string and echoes it.
  */
 bool MessageCommand(CommandID cmd, const char *data, uint16_t len) {
   // send the stored message, or update and echo the message from a string sent
@@ -73,15 +75,17 @@ bool MessageCommand(CommandID cmd, const char *data, uint16_t len) {
 }
 
 /*!
- * @brief Callback to be invoked on a begin log command. Starts logging data from Blueboy or the test system
- * depending on the command ID, accepting an unsigned 16-bit short as the collection period and an optional
- * byte representing the attitude mode (orientation data as raw sensor data, euler angles, or a quaternion).
- * 
- * Sends messages over telemetry reporting successful beginning or failure due to current calibration.
+ * @brief Callback to be invoked on a begin log command.
  * @param cmd The ID of the command that invoked this callback
  * @param data Byte buffer containing data that may have been passed by the command
  * @param len Length of the byte buffer
  * @return True iff the command was properly formed and Blueboy is not currently calibrating any sensors.
+ * 
+ * Starts logging data from Blueboy or the test system depending on the command ID, accepting an unsigned
+ * 16-bit short as the collection period and an optional byte representing the attitude mode (orientation
+ * data as raw sensor data, euler angles, or a quaternion).
+ * 
+ * Sends messages over telemetry reporting successful beginning or failure due to current calibration.
  */
 bool BeginLogCommand(CommandID cmd, const char *data, uint16_t len) {
   if (peripherals.Calibrating()) {
@@ -112,11 +116,13 @@ bool BeginLogCommand(CommandID cmd, const char *data, uint16_t len) {
 }
 
 /*!
- * @brief Callback to be invoked on an end log command. Stops logging data from Blueboy or the test system depending on the command ID.
+ * @brief Callback to be invoked on an end log command.
  * @param cmd The ID of the command that invoked this callback
  * @param data Byte buffer containing data that may have been passed by the command
  * @param len Length of the byte buffer
  * @return True
+ *
+ * Stops logging data from Blueboy or the test system depending on the command ID.
  */
 bool EndLogCommand(CommandID cmd, const char *data, uint16_t len) {
   telemetry.SendMessage(END_LOG_MSG);
@@ -128,12 +134,12 @@ bool EndLogCommand(CommandID cmd, const char *data, uint16_t len) {
 
 /*!
  * @brief Callback to be invoked when an invalid command is received.
- * 
- * Sends a message over telemetry reporting the command ID that was not recognized.
  * @param cmd The ID of the command that invoked this callback
  * @param data Byte buffer containing data that may have been passed by the command
  * @param len Length of the byte buffer
  * @return True
+ *
+ * Sends a message over telemetry reporting the command ID that was not recognized.
  */
 bool InvalidCommand(CommandID cmd, const char *data, uint16_t len) {
   sprintf(strbuf, "%s: %02x", UNRECOGNIZED_MSG, cmd);
@@ -142,14 +148,15 @@ bool InvalidCommand(CommandID cmd, const char *data, uint16_t len) {
 }
 
 /*!
- * @brief Callback to be invoked on a begin calibrate command. Starts calibrating the sensor associated
- * with the command ID on Blueboy and the test system simultaneously.
- *
- * Sends a message over telemetry reporting that calibration has begun.
+ * @brief Callback to be invoked on a begin calibrate command.
  * @param cmd The ID of the command that invoked this callback
  * @param data Byte buffer containing data that may have been passed by the command
  * @param len Length of the byte buffer
  * @return True iff neither Blueboy nor the test system are currently logging.
+ *
+ * Starts calibrating the sensor associated with the command ID on Blueboy and the test system simultaneously.
+ *
+ * Sends a message over telemetry reporting that calibration has begun.
  */
 bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   if (telemetry.Logging(Device::Own) || telemetry.Logging(Device::Test)) {
@@ -178,15 +185,16 @@ bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
 }
 
 /*!
- * @brief Callback to be invoked on an end calibrate command. Stops calibrating the sensor associated
- * with the command ID on Blueboy and the test system simultaneously, stores new calibration constants
- * in persistent memory, and reports the new constants to a connected serial monitor.
- *
- * Sends a message over telemetry reporting that calibration has ended.
+ * @brief Callback to be invoked on an end calibrate command.
  * @param cmd The ID of the command that invoked this callback
  * @param data Byte buffer containing data that may have been passed by the command
  * @param len Length of the byte buffer
  * @return True iff the command was properly formed and neither Blueboy nor the test system are currently logging.
+ * 
+ * Stops calibrating the sensor associated with the command ID on Blueboy and the test system simultaneously,
+ * stores new calibration constants in persistent memory, and reports the new constants to a connected serial monitor.
+ *
+ * Sends a message over telemetry reporting that calibration has ended.
  */
 bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   struct AxisOffsets off;
@@ -220,14 +228,15 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
 }
 
 /*!
- * @brief Callback to be invoked on a clear calibrate command. Clears the calbration constants of the sensor
- * associated with the command ID.
- *
- * Sends a message over telemetry reporting that calibration has been cleared.
+ * @brief Callback to be invoked on a clear calibrate command.
  * @param cmd The ID of the command that invoked this callback
  * @param data Byte buffer containing data that may have been passed by the command
  * @param len Length of the byte buffer
  * @return True iff the command was properly formed.
+ *
+ * Clears the calbration constants of the sensor associated with the command ID.
+ *
+ * Sends a message over telemetry reporting that calibration has been cleared.
  */
 bool ClearCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {  
   switch (cmd) {

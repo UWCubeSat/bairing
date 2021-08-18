@@ -1,5 +1,7 @@
-/*
- * Common data structures and command/telemetry constants for Blueboy
+/*!
+ * @file Blueboy.h
+ * @author Sebastian S.
+ * @brief Common data structures and command/telemetry constants for Blueboy
  */
 
 #ifndef BLUEBOY_H_
