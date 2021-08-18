@@ -1,3 +1,9 @@
+/*!
+ * @file PacketSender.cpp
+ * @author Sebastian S.
+ * @brief Implementation of PacketSender.h
+ */
+
 #include "PacketSender.h"
 
 void PacketSender::Begin(uint8_t id) {

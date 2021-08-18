@@ -1,6 +1,16 @@
+/*!
+ * @file PacketReceiver.cpp
+ * @author Sebastian S.
+ * @brief Implementation of PacketReceiver.h
+ */
+
 #include "PacketReceiver.h"
 #include "hardwareSerial.h"
 
+/*!
+ * @var bool DEBUG
+ * If true, debug information should be printed over Serial during operation
+ */
 constexpr bool DEBUG = false;
 
 void PacketReceiver::Begin() {
