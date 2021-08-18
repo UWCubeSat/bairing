@@ -135,9 +135,36 @@ static bool writeAddress(uint8_t addr, uint8_t len, const char *buf, bool stop =
   return true;
 }
 
-bool OneUDriver::Initialize() {
-  
+bool OneUDriver::Initialize() { 
   return true;
+}
+
+void OneUDriver::Reset() {
+  uint8_t byte;
+  
+  if (!readAddress(0x10, 1, &byte, false)) {
+    return;
+  }
+  
+  byte |= (1 << 0);
+  
+  if (!writeAddress(0x10, 1, &byte, true)) {
+    return;
+  }
+}
+
+bool OneUDriver::SensorHealthy(sensors_type_t type) {
+  uint8_t byte;
+  int bit = bitFromType(type);
+  if (bit == -1) {
+    return false;
+  }
+  
+  if (!readAddress(0x01, 1, &byte, true)) {
+    return false;
+  }
+  
+  return (byte & (1 << bit)) != 0;
 }
 
 bool OneUDriver::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
@@ -152,6 +179,28 @@ bool OneUDriver::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
     return result;
   }
   return false;
+}
+
+bool OneUDriver::GetOrientationEulers(struct Vector *eulers) {
+  uint8_t addr = 0xA4;  //! @todo Make this a constant
+  char *raw = (char *) eulers;
+  
+  bool result = readAddress(addr, 12, raw);
+  
+  delay(1);
+  
+  return result;
+}
+
+bool OneUDriver::GetOrientationQuaternion(struct Quaternion *quaternion) {
+  uint8_t addr = 0xB0;  //! @todo Make this a constant
+  char *raw = (char *) quaternion;
+  
+  bool result = readAddress(addr, 16, raw);
+  
+  delay(1);
+  
+  return result;
 }
 
 // tell the 1U to start calibrating a sensor
