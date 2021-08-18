@@ -1,4 +1,8 @@
-// Driver for the 1U test system over I2C
+/*!
+ * @file OneUDriver.h
+ * @author Sebastian S.
+ * @brief Declaration for OneUDriver
+ */
 
 #ifndef ONEU_DRIVER_H_
 #define ONEU_DRIVER_H_
@@ -9,8 +13,12 @@
 #include "SimpleCalibratedSensor.h"
 #include "../Blueboy.h"
 
+/*!
+ * @class OneUDriver
+ * @brief Driver for the mounted 1U test system
+ */
 class OneUDriver : public SimpleCalibratedSensor {
- public:  
+ public:
   OneUDriver();
   
   bool Initialize() override;

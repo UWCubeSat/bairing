@@ -1,12 +1,28 @@
+/*!
+ * @file OneUDriver.h
+ * @author Sebastian S.
+ * @brief Implementation of OneUDriver.h
+ */
+
 #include <Arduino.h>
 #include <Wire.h>
 #include "OneUDriver.h"
 
+/*!
+ * @var uint8_t ONEU_ADDR
+ * I2C address of the 1U test system.
+ */
 constexpr uint8_t ONEU_ADDR = 0x3A;
 
 OneUDriver::OneUDriver() { }
 
-// TODO make these constants
+/*!
+ * @brief Translates a reading type into its corresponding data register address
+ * @param type Sensor type to get the address of
+ * @return Address of the sensor's data
+ *
+ * @todo Make these into constants
+ */
 static uint8_t addrFromType(sensors_type_t type) {
   switch (type) {
     case SENSOR_TYPE_MAGNETIC_FIELD:
@@ -20,6 +36,11 @@ static uint8_t addrFromType(sensors_type_t type) {
   }
 }
 
+/*!
+ * @brief Translates a reading type into the corresponding bit within a byte
+ * @param type Sensor type to get the bit position of
+ * @return Bit position of the sensor type, or -1 on an unrecognized sensor
+ */
 static int bitFromType(sensors_type_t type) {
   switch (type) {
     case SENSOR_TYPE_MAGNETIC_FIELD:
@@ -32,6 +53,12 @@ static int bitFromType(sensors_type_t type) {
       return -1;
   }
 }
+
+/*!
+ * @brief Starts a transaction with the 1U over I2C, sending the register address with repeated start
+ * @param addr Address of the register to access
+ * @return True if the transaction was successfully carried out
+ */
 static bool requestAddress(uint8_t addr) {
   Wire.beginTransmission(ONEU_ADDR);
   Wire.write(addr);
@@ -47,7 +74,14 @@ static bool requestAddress(uint8_t addr) {
   return true;
 }
 
-// request len bytes from the test system addr, writing the read bytes into buf
+/*!
+ * @brief Reads bytes from the 1U starting at the given register address
+ * @param addr Address of the first register to access
+ * @param len Number of bytes to read
+ * @param buf Buffer to write read data into
+ * @param stop True if a stop should be sent following this transaction, false for a repeated start
+ * @return True if the transaction was successfully carried out
+ */
 static bool readAddress(uint8_t addr, uint8_t len, char *buf, bool stop = true) {
   if (!requestAddress(addr)) {
     return false;
@@ -74,7 +108,14 @@ static bool readAddress(uint8_t addr, uint8_t len, char *buf, bool stop = true) 
   return true;
 }
 
-// transmit len bytes to the test system addr, sending the bytes in buf
+/*!
+ * @brief Transmits bytes to the 1U starting at the given register address
+ * @param addr Address of the first register to write to
+ * @param len Number of bytes to write
+ * @param buf Buffer containing data to write
+ * @param stop True if a stop should be sent following this transaction, false for a repeated start
+ * @return True if the transaction was successfully carried out
+ */
 static bool writeAddress(uint8_t addr, uint8_t len, const char *buf, bool stop = true) {
   if (!requestAddress(addr)) {
     return false;

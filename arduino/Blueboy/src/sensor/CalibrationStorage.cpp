@@ -1,3 +1,9 @@
+/*!
+ * @file CalibrationStorage.h
+ * @author Sebastian S.
+ * @brief Implementation of CalibrationStorage.h
+ */
+
 #include "CalibrationStorage.h"
 
 StorageHandle CalibrationStorage::_registered = 0;
@@ -15,6 +21,7 @@ void CalibrationStorage::Fetch(StorageHandle handle, struct AxisOffsets *offsets
   
   EEPROM.get(address, stored);
   
+  // if the canary exists at this location, it's a valid set of offsets; otherwise, return defaults
   if (stored.canary == STORAGE_CANARY) {
     *offsets = stored.offsets;
   } else {

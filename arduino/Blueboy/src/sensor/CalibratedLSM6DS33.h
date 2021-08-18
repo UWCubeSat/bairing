@@ -1,3 +1,9 @@
+/*!
+ * @file CalibratedLSM6DS33.h
+ * @author Sebastian S.
+ * @brief Declaration for CalibratedLSM6DS33
+ */
+
 #ifndef CALIBRATED_LSM6DS33_H_
 #define CALIBRATED_LSM6DS33_H_
 
@@ -7,6 +13,12 @@
 
 #include "SimpleCalibratedSensor.h"
 
+/*!
+ * @class CalibratedLSM6DS33
+ * @brief Calibrated sensor driver for the LSM6DS33 6-dof IMU
+ * 
+ * The LSM6DS33 takes accelerometer and gyroscope readings.
+ */
 class CalibratedLSM6DS33 : public SimpleCalibratedSensor {
  public:  
   CalibratedLSM6DS33();
@@ -15,9 +27,11 @@ class CalibratedLSM6DS33 : public SimpleCalibratedSensor {
   
   // Outputs a sensor event of the given event (ignored if this sensor only outputs one type)
   // Returns true iff the sensor was successfully read
+  /*! Allows type to be SENSOR_TYPE_ACCELEROMETER or SENSOR_TYPE_GYROSCOPE */
   bool GetEventRaw(sensors_event_t *event, sensors_type_t type = 0) override;
   
   // Begins calibrating the sensor of the given type
+  /*! Allows type to be SENSOR_TYPE_ACCELEROMETER or SENSOR_TYPE_GYROSCOPE */
   void BeginCalibration(sensors_type_t type) override;
   
   // Ends the current calibration
@@ -26,10 +40,12 @@ class CalibratedLSM6DS33 : public SimpleCalibratedSensor {
   // Adds a calibration sample for the given sensor type (ignored if this sensor only outputs one type)
   void AddCalibrationSample() override;
   
-  void GetCalibration(struct AxisOffsets *offsets) override { *offsets = _gyroOffsets; }
+  /*! Allows type to be SENSOR_TYPE_ACCELEROMETER or SENSOR_TYPE_GYROSCOPE */
+  void GetCalibration(struct AxisOffsets *offsets, sensors_type_t type = 0) override { *offsets = _gyroOffsets; }
   
   // Clears the currently stored calibration offsets
-  virtual void ClearCalibration() override {    
+  /*! Allows type to be SENSOR_TYPE_ACCELEROMETER or SENSOR_TYPE_GYROSCOPE */
+  virtual void ClearCalibration(sensors_type_t type = 0) override {
     CalibrationStorage::Clear(_handle);
     _gyroOffsets.xOff = _gyroOffsets.yOff = _gyroOffsets.zOff = 0.0;
   }

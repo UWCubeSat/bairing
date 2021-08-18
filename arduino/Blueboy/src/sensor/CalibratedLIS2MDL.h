@@ -1,3 +1,9 @@
+/*!
+ * @file CalibratedLIS2MDL.h
+ * @author Sebastian S.
+ * @brief Declaration for CalibratedLIS2MDL
+ */
+
 #ifndef CALIBRATED_LIS2MDL_H_
 #define CALIBRATED_LIS2MDL_H_
 
@@ -7,6 +13,10 @@
 
 #include "SimpleCalibratedSensor.h"
 
+/*!
+ * @class CalibratedLIS2MDL
+ * @brief Calibrated sensor driver for the LIS2MDL magnetometer
+ */
 class CalibratedLIS2MDL : public SimpleCalibratedSensor {
  public:  
   CalibratedLIS2MDL();
@@ -25,11 +35,12 @@ class CalibratedLIS2MDL : public SimpleCalibratedSensor {
   
   // Adds a calibration sample for the given sensor type (ignored if this sensor only outputs one type)
   void AddCalibrationSample() override;
-
-  void GetCalibration(struct AxisOffsets *offsets) override { *offsets = _magOffsets; }
+  
+  // Returns the currently stored offsets of the given reading type
+  void GetCalibration(struct AxisOffsets *offsets, sensors_type_t type = 0) override { *offsets = _magOffsets; }
   
   // Clears the currently stored calibration offsets
-  virtual void ClearCalibration() override {    
+  virtual void ClearCalibration(sensors_type_t type = 0) override {    
     CalibrationStorage::Clear(_handle);
     _magOffsets.xOff = _magOffsets.yOff = _magOffsets.zOff = 0.0;
   }

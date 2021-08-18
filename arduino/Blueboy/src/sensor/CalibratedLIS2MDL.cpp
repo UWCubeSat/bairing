@@ -1,3 +1,9 @@
+/*!
+ * @file CalibratedLIS2MDL.h
+ * @author Sebastian S.
+ * @brief Implementation of CalibratedLIS2MDL.h
+ */
+
 #include "CalibratedLIS2MDL.h"
 
 CalibratedLIS2MDL::CalibratedLIS2MDL(): _lis2mdl(Adafruit_LIS2MDL()) {
@@ -19,23 +25,10 @@ bool CalibratedLIS2MDL::Initialize() {
 bool CalibratedLIS2MDL::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
   bool success = _lis2mdl.getEvent(event);
   
-  // x = x
-  // y = -z
-  // z = y
-  
-  
-  
   // swap x and y axes and invert them to match axes on the LSM6DS33
   float tmp = event->magnetic.x;
   event->magnetic.x = -event->magnetic.y;
   event->magnetic.y = -tmp;
-  
-  
-  /*
-  float tmp = event->magnetic.y;
-  event->magnetic.y = -event->magnetic.z;
-  event->magnetic.z = tmp;
-  */
   
   /*
   Serial.print("Raw: (");
@@ -61,6 +54,7 @@ void CalibratedLIS2MDL::BeginCalibration(sensors_type_t type) {
 
 void CalibratedLIS2MDL::EndCalibration() {
   if (_currCalibration) {  // type is not 0, so we were calibrating
+    // Set offsets to be the midpoints of axis limits
     _magOffsets.xOff = (_magLimits.xMin + _magLimits.xMax) / 2.0;
     _magOffsets.yOff = (_magLimits.yMin + _magLimits.yMax) / 2.0;
     _magOffsets.zOff = (_magLimits.zMin + _magLimits.zMax) / 2.0;
@@ -75,7 +69,7 @@ void CalibratedLIS2MDL::AddCalibrationSample() {
     sensors_event_t event;
     if (GetEventRaw(&event, _currCalibration)) {
       if (_magToDiscard > 0) {
-        _magToDiscard--;
+        _magToDiscard--;  // Discard the first few samples
       } else {
         _magLimits.xMin = min(_magLimits.xMin, event.magnetic.x);
         _magLimits.yMin = min(_magLimits.yMin, event.magnetic.y);

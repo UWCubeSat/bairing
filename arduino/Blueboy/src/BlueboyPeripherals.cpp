@@ -6,12 +6,6 @@
 
 #include "BlueboyPeripherals.h"
 
-/*!
- * @var uint8_t ONEU_ADDRESS
- * I2C address of the 1U test system.
- */
-constexpr uint8_t ONEU_ADDRESS = 0x3A;
-
 bool BlueboyPeripherals::Initialize() {
   if (_initialized) {
     return true;

@@ -1,3 +1,9 @@
+/*!
+ * @file CalibratedLSM6DS33.h
+ * @author Sebastian S.
+ * @brief Implementation of CalibratedLSM6DS33.h
+ */
+
 #include "CalibratedLSM6DS33.h"
 
 CalibratedLSM6DS33::CalibratedLSM6DS33(): _lsm6ds33(Adafruit_LSM6DS33()) {
@@ -24,21 +30,6 @@ bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type
     case SENSOR_TYPE_GYROSCOPE:
       success = _lsm6ds33.getGyroSensor()->getEvent(event);
       
-      // x = -y
-      // y = -z
-      // z = -x
-      /*
-      tmp = event->gyro.x;
-      event->gyro.x = -event->gyro.y;
-      event->gyro.y = -event->gyro.z;
-      event->gyro.z = -tmp;
-      */
-      
-      /*
-      // modify vector s.t. we get readings with right hand axes
-      event->gyro.z = -event->gyro.z;
-      &/
-      
       /*
       Serial.print("Raw: (");
       Serial.print(event->gyro.x, 4); Serial.print(", ");
@@ -49,15 +40,6 @@ bool CalibratedLSM6DS33::GetEventRaw(sensors_event_t *event, sensors_type_t type
       return success;
     case SENSOR_TYPE_ACCELEROMETER:
       success = _lsm6ds33.getAccelerometerSensor()->getEvent(event);
-      
-      tmp = event->acceleration.x;
-      event->acceleration.x = -event->acceleration.y;
-      event->acceleration.y = -event->acceleration.z;
-      event->acceleration.z = -tmp;
-      
-      /*
-      event->acceleration.z = -event->acceleration.z;
-      */
       
       /*
       Serial.print("Raw: (");
