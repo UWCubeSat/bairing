@@ -26,7 +26,22 @@ I2CBus* GetI2C(I2CBus::Handle handle) {
 
 // begin as master
 void I2CBus::Begin() {
-  // TODO master
+  _address = 0x00;          // no address since we're the master on the bus
+  _mode = I2CMode::Master;
+
+  gpioInit();
+
+  struct UCBx *base = msp430::UCB[(int) _bus];
+
+  base->ctlw0 |= UCSWRST;        // hold in reset state
+
+  base->ctlw1 |= (UCMODE_3 | UCMST | UCSYNC);   // i2c mode, master
+
+  base->ctlw0 &= ~UCSWRST;
+
+  base->ie |= (UCRXIE | UCTXIE | UCSTTIE | UCSTPIE);    // enable interrupts for rx, tx, stop, start
+
+  _enable_interrupts();         // enable general interrupts
 }
 
 // begin as slave
@@ -60,11 +75,17 @@ int I2CBus::RequestFrom(uint8_t address, int quantity, bool stop) {
 // begin transmission with slave
 void I2CBus::BeginTransmission(uint8_t address) {
   // TODO master
+    // steps: check if bus is busy
+    //        send start condition
+    //        send addresss + read/write bit
+    //        wait for ack? use interrupt probably, if we don't get ack send repeated start condition
 }
 
 // end current transmission, return status
 int I2CBus::EndTransmission() {
   // TODO master
+    // steps: send stop condition
+    //        wait for stop complete
   return -1;
 }
 

@@ -29,7 +29,8 @@ enum class I2CMode {
 };
 
 enum class I2CClockFrequency {
-  // TODO set up some preset clock speeds
+  NORMAL,
+  FAST
 };
 
 constexpr int I2C_RWBUFLEN = 32;          // size of the read/write buffers in bytes
