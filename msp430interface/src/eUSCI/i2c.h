@@ -46,6 +46,15 @@ class I2CBus {
     B3 = 3
   };
 
+  enum I2CStatus {
+    NoError = 0,
+    NACK = 1,
+    StartTimeout = 2,
+    StopTimeout = 3,
+    Busy = 4,
+    InvalidOp = 5,
+  };
+
   I2CBus(Handle bus):
     _bus(bus), _address(0), _mode(I2CMode::Unused),
     _transmitting(false), _started(false), _requested(false),
@@ -62,6 +71,7 @@ class I2CBus {
   int Available();                          // returns the number of bytes available to read
   char Read();                              // reads a single byte, received from RequestFrom or transmitted from the master
   void SetClock(I2CClockFrequency freq);    // sets the clock frequency transmitted if a master
+  I2CStatus GetStatus();
 
   void OnReceive(void (*_onReceive)(int size));  // calls the given function whenever this bus receives data as a slave
   void OnRequest(void (*_onRequest)());          // calls the given function whenever this bus is requested data from the master

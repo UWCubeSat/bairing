@@ -20,6 +20,8 @@ I2CBus* GetI2C(I2CBus::Handle handle) {
   return &I2CBuses[(int) handle];
 }
 
+I2CStatus lastResult = I2CStatus::NoError;
+
 /*
  * I2CBus Definitions
  */
@@ -37,9 +39,9 @@ void I2CBus::Begin() {
 
   base->ctlw1 |= (UCMODE_3 | UCMST | UCSYNC);   // i2c mode, master
 
-  base->ctlw0 &= ~UCSWRST;
+  base->ie |= (UCRXIE | UCTXIE | UCSTTIE | UCSTPIE | UCNACKIFG);    // enable interrupts for rx, tx, stop, start, nack
 
-  base->ie |= (UCRXIE | UCTXIE | UCSTTIE | UCSTPIE);    // enable interrupts for rx, tx, stop, start
+  base->ctlw0 &= ~UCSWRST;
 
   _enable_interrupts();         // enable general interrupts
 }
@@ -67,26 +69,79 @@ void I2CBus::Begin(uint8_t address) {
 
 // as master, request quantity bytes from the slave at the given address
 // if stop, send a stop condition at the end of the request; else, send a repeated start
-int I2CBus::RequestFrom(uint8_t address, int quantity, bool stop) {
+I2CStatus I2CBus::RequestFrom(uint8_t address, int quantity, bool stop) {
   // TODO master
-  return -1;
+  //  make sure we're in receive mode
+  struct UCBx *base = getBase();
+  base->i2csa = address;
+  static int bytesToRead = 0;
+  static bool stopFlag = false;
+  
+  // only valid in master mode
+  if (GetMode() != I2CMode::Master) return I2CStatus::InvalidOp;
+
+  bytesToRead = quantity;
+  stopFlag = stop;
+
+  // autostop?
+  if (stop) {
+    base->ctlw0 |= UCSWRST;
+    base->ctlw1 |= UCASTP_2;
+    base->tbcnt = bytesToRead;
+    base->ctlw0 &= ~UCSWRST;
+  } else {
+    base->ctlw0 |= UCSWRST;
+    base->ctlw1 &= ~UCASTP_2;
+    base->ctlw0 &= ~UCSWRST;
+  }
+
+  // send start condition, in receive mode
+  base->ctlw0 &= ~(UCTR);
+  base->ctlw0 |= (UCTXSTT);
+  return I2CStatus::NoError;
 }
 
 // begin transmission with slave
-void I2CBus::BeginTransmission(uint8_t address) {
+I2CBus::I2CStatus I2CBus::BeginTransmission(uint8_t address) {
   // TODO master
     // steps: check if bus is busy
     //        send start condition
     //        send addresss + read/write bit
     //        wait for ack? use interrupt probably, if we don't get ack send repeated start condition
+  struct UCBx *base = getBase();
+  base->i2csa = address;
+
+  // this call is only valid in master mode, so just return if it isn't configured that way
+  if (GetMode() != I2CMode::Master) return I2CStatus::InvalidOp;
+
+  // spin wait until our bus is released
+  // TODO: add a timeout jic
+  // return if we timeout with timeout error
+  if (base->statw & UCBBUSY) return I2CStatus::Busy;
+
+  // send start condition
+  base->ctlw1 &= (UCTXSTT | UCTR);
+
+  // wait for start to be sent
+  // TODO: add some kind of timeout just in case?
+  while (base->ctlw0 & UCTXSTT) { }
+  return I2CStatus::NoError;
 }
 
 // end current transmission, return status
-int I2CBus::EndTransmission() {
-  // TODO master
-    // steps: send stop condition
-    //        wait for stop complete
-  return -1;
+I2CBus::I2CStatus I2CBus::EndTransmission() {
+  // this call is only valid in master mode, so just return if it isn't configured that way
+  struct UCBx *base = getBase();
+  if (GetMode() != I2CMode::Master) return I2CStatus::InvalidOp;
+
+  // send stop condition
+  base->ctlw0 |= (UCTXSTP);
+
+  // wait for stop to be sent
+  // TODO: add some kind of timeout just in case?
+  while (base->ctlw0 & UCTXSTP) { }
+
+  return I2CStatus::NoError;
 }
 
 // write a single byte during a transmission, or in response to a master
@@ -122,6 +177,9 @@ char I2CBus::Read() {
 void I2CBus::SetClock(I2CClockFrequency freq) {
   // TODO master
   // configure clock divider
+  // how can we do this without knowing the exact clock frequency? Hard to say.
+  // Might be a good idea to have some kind of config in the header for masterclock frequency,
+  // otherwise I don't know how to programmatically determine the clock frequency
 }
 
 // calls the given function whenever this bus receives data as a slave
@@ -221,6 +279,10 @@ void I2CBus::ISRHandler() {
     case USCI_I2C_UCALIFG:          // Arbitration lost
       break;
     case USCI_I2C_UCNACKIFG:        // Nack received in master mode
+      EndTransmission();
+
+      // TODO: set result of transmission to NACK
+      // increase error count
       break;
     case USCI_I2C_UCSTTIFG:         // Start condition received
       STARTS++;
@@ -255,6 +317,15 @@ void I2CBus::ISRHandler() {
     case USCI_I2C_UCRXIFG1:         // Complete byte received in slave mode on address 1
     case USCI_I2C_UCRXIFG0:         // Complete byte received in slave mode on address 0
       receiveByte();
+      if ((GetMode() == I2CMode::Master) && (--bytesToRead == 0)) {
+        if (stopFlag) {
+          // end transmission
+          EndTransmission();
+        } else {
+          // send repeated start
+          BeginTransmission(base->i2csa);
+        }
+      }
       break;
     case USCI_I2C_UCTXIFG3:         // Transmit buffer empty in slave mode on address 3
     case USCI_I2C_UCTXIFG2:         // Transmit buffer empty in slave mode on address 2
