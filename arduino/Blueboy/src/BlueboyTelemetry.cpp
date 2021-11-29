@@ -92,6 +92,7 @@ void BlueboyTelemetry::SendAttitude(Device dev, AttitudeMode mode, const struct 
 }
 
 void BlueboyTelemetry::Tick() {
+  /*
   if (_peripherals.lsm6ds33.Calibrating()) {
     _peripherals.lsm6ds33.AddCalibrationSample();
     delay(1);
@@ -101,6 +102,7 @@ void BlueboyTelemetry::Tick() {
     _peripherals.lis2mdl.AddCalibrationSample();
     delay(1);
   }
+  */
   
   for (int i = 0; i < 2; i++) {
     if (_settings[i].logging && (millis() - _settings[i].lastSent >= _settings[i].sendDelay)) {

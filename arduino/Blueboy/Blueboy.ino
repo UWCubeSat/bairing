@@ -43,7 +43,8 @@ bool ResetCommand(CommandID cmd, const char *data, uint16_t len) {
   telemetry.SendMessage(RESET_MSG);
   delay(100);   // delay to allow message to be sent asynchronously
   
-  telemetry.oneU.Reset();
+  peripherals.oneU.Reset();
+  peripherals.bno080.Reset();
   
   digitalWrite(RST_PIN, LOW);  // pull pin low for reset
   
@@ -167,14 +168,15 @@ bool BeginCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   
   switch (cmd) {
     case CommandID::BeginCalibMag:
-      peripherals.lis2mdl.BeginCalibration(SENSOR_TYPE_MAGNETIC_FIELD);
+      peripherals.bno080.BeginCalibration(SENSOR_TYPE_MAGNETIC_FIELD);
       peripherals.oneU.BeginCalibration(SENSOR_TYPE_MAGNETIC_FIELD);
       break;
     case CommandID::BeginCalibAcc:
+      peripherals.bno080.BeginCalibration(SENSOR_TYPE_ACCELEROMETER);
       peripherals.oneU.BeginCalibration(SENSOR_TYPE_ACCELEROMETER);
       break;
     case CommandID::BeginCalibGyro:
-      peripherals.lsm6ds33.BeginCalibration(SENSOR_TYPE_GYROSCOPE);
+      peripherals.bno080.BeginCalibration(SENSOR_TYPE_GYROSCOPE);
       peripherals.oneU.BeginCalibration(SENSOR_TYPE_GYROSCOPE);
       break;
   }
@@ -200,30 +202,21 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
   struct AxisOffsets off;
   switch (cmd) {
     case CommandID::EndCalibMag:
-      peripherals.lis2mdl.EndCalibration();
+      peripherals.bno080.EndCalibration();
       peripherals.oneU.EndCalibration();
-      peripherals.lis2mdl.GetCalibration(&off);
       break;
     case CommandID::EndCalibAcc:
+      peripherals.bno080.EndCalibration();
       peripherals.oneU.EndCalibration();
       break;
     case CommandID::EndCalibGyro:
-      peripherals.lsm6ds33.EndCalibration();
+      peripherals.bno080.EndCalibration();
       peripherals.oneU.EndCalibration();
-      peripherals.lsm6ds33.GetCalibration(&off);
       break;
     default:
       return false;
   }
   telemetry.SendMessage(END_CALIB_MSG);
-  
-  Serial.println(F("Calibration complete! Offsets: "));
-  Serial.print(F("  x: "));
-  Serial.println(off.xOff, 5);
-  Serial.print(F("  y: "));
-  Serial.println(off.yOff, 5);
-  Serial.print(F("  z: "));
-  Serial.println(off.zOff, 5);
   return true;
 }
 
@@ -241,12 +234,13 @@ bool EndCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {
 bool ClearCalibrateCommand(CommandID cmd, const char *data, uint16_t len) {  
   switch (cmd) {
     case CommandID::ClearCalibMag:
-      peripherals.lis2mdl.ClearCalibration();
+      peripherals.bno080.ClearCalibration(SENSOR_TYPE_MAGNETIC_FIELD);
       break;
     case CommandID::ClearCalibAcc:
+      peripherals.bno080.ClearCalibration(SENSOR_TYPE_ACCELEROMETER);
       break;
     case CommandID::ClearCalibGyro:
-      peripherals.lsm6ds33.ClearCalibration();
+      peripherals.bno080.ClearCalibration(SENSOR_TYPE_GYROSCOPE);
       break;
     default:
       return false;
@@ -268,6 +262,7 @@ void setup() {
   Serial.begin(9600);
   bt.begin(57600);
   Wire.begin();
+  Wire.setClock(400000);
   
   // copy the default message from flash memory to a buffer, to be echoed on an empty message command
   strcpy_P(message, (const char *) DEFAULT_MSG);

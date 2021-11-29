@@ -19,12 +19,13 @@ struct Quaternion q;
 
 void loop() {
   if (bno.UpdateReadings() && bno.GetOrientationQuaternion(&q)) {
+    Serial.print(F("Quaternion: "));
     Serial.print(q.x, 2);
-    Serial.print(F(","));
+    Serial.print(F(", "));
     Serial.print(q.y, 2);
-    Serial.print(F(","));
+    Serial.print(F(", "));
     Serial.print(q.z, 2);
-    Serial.print(F(","));
+    Serial.print(F(", "));
     Serial.print(q.w, 2);
     Serial.println();
   }

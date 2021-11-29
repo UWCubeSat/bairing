@@ -23,10 +23,6 @@ class CalibratedLIS2MDL : public SimpleCalibratedSensor {
   
   bool Initialize() override;
   
-  void CalibratedBNO080::UpdateReadings() {
-  
-}
-  
   // Outputs a sensor event of the given event (ignored if this sensor only outputs one type)
   // Returns true iff the sensor was successfully read
   bool GetEventRaw(sensors_event_t *event, sensors_type_t type = 0) override;

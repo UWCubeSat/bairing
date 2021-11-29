@@ -27,6 +27,8 @@ bool CalibratedBNO080::Initialize() {
     _bno080.enableMagnetometer(BNO080_PERIOD / 4);    // magnetic field
     _bno080.enableAccelerometer(BNO080_PERIOD / 4);   // acceleration including gravity
     _bno080.enableGyro(BNO080_PERIOD / 4);            // angular rotation
+    
+    _currCalibration = 0;
   }
   return status;
 }
@@ -41,10 +43,13 @@ bool CalibratedBNO080::GetEventRaw(sensors_event_t *event, sensors_type_t type) 
   switch (type) {
     case SENSOR_TYPE_MAGNETIC_FIELD:
       _bno080.getMag(event->magnetic.x, event->magnetic.y, event->magnetic.z, accuracy);
+      break;
     case SENSOR_TYPE_ACCELEROMETER:
       _bno080.getAccel(event->acceleration.x, event->acceleration.y, event->acceleration.z, accuracy);
+      break;
     case SENSOR_TYPE_GYROSCOPE:
       _bno080.getGyro(event->gyro.x, event->gyro.y, event->gyro.z, accuracy);
+      break;
     default:
       return false;
   }
@@ -67,14 +72,23 @@ bool CalibratedBNO080::GetOrientationEulers(struct Vector *eulers) {
 }
 
 void CalibratedBNO080::BeginCalibration(sensors_type_t type) {
+  if (Calibrating()) {
+    return;
+  }
   switch (type) {
     case SENSOR_TYPE_MAGNETIC_FIELD:
       _bno080.calibrateMagnetometer();
+      break;
     case SENSOR_TYPE_ACCELEROMETER:
       _bno080.calibrateAccelerometer();
+      break;
     case SENSOR_TYPE_GYROSCOPE:
       _bno080.calibrateGyro();
+      break;
+    default:
+      return;
   }
+  _currCalibration = type;
 }
 
 void CalibratedBNO080::GetCalibration(struct AxisOffsets *offsets, sensors_type_t type) {
@@ -84,8 +98,15 @@ void CalibratedBNO080::GetCalibration(struct AxisOffsets *offsets, sensors_type_
 }
 
 void CalibratedBNO080::EndCalibration() {
-  _bno080.endCalibration();
-  _bno080.saveCalibration();
+  if (Calibrating()) {
+    _bno080.endCalibration();
+    _bno080.saveCalibration();
+    _currCalibration = 0;
+  }
 }
 
 void CalibratedBNO080::ClearCalibration(sensors_type_t type) { }
+
+void CalibratedBNO080::Reset() {
+  _bno080.softReset();
+}

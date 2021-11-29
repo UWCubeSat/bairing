@@ -9,11 +9,11 @@
 #include <Wire.h>
 
 #include <Adafruit_Sensor.h>
-#include <Adafruit_LIS2MDL.h>
 #include "Blueboy.h"
 #include "sensor/OneUDriver.h"
-#include "sensor/CalibratedLSM6DS33.h"
-#include "sensor/CalibratedLIS2MDL.h"
+#include "sensor/CalibratedBNO080.h"
+// #include "sensor/CalibratedLSM6DS33.h"
+// #include "sensor/CalibratedLIS2MDL.h"
 
 /*!
  * @class BlueboyPeripherals
@@ -24,8 +24,7 @@ class BlueboyPeripherals {
   /*!
    * @brief BlueboyPeripherals constructor
    */
-  BlueboyPeripherals() : lsm6ds33(CalibratedLSM6DS33()),
-                                          lis2mdl(CalibratedLIS2MDL()),
+  BlueboyPeripherals() : bno080(CalibratedBNO080()),
                                           oneU() , _initialized(false) { }
   
   /*!
@@ -74,17 +73,22 @@ class BlueboyPeripherals {
   /*!
    * @return True if any onboard sensors are currently calibrating.
    */
-  bool Calibrating() { return lsm6ds33.Calibrating() || lis2mdl.Calibrating(); }
+  bool Calibrating() { return bno080.Calibrating(); }
   
   /*!
    * @var CalibratedLSM6DS33 Internal calibrated LSM6DS33 driver
    */
-  CalibratedLSM6DS33 lsm6ds33;
+  // CalibratedLSM6DS33 lsm6ds33;
   
   /*!
    * @var CalibratedLIS2MDL Internal calibrated LIS2MDL driver
    */
-  CalibratedLIS2MDL lis2mdl;
+  // CalibratedLIS2MDL lis2mdl;
+  
+  /*!
+   * @var CalibratedBNO080 Internal calibrated BNO080 driver
+   */
+  CalibratedBNO080 bno080;
 
   /*!
    * @var OneUDriver Internal driver for the mounted 1U test system

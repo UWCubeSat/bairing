@@ -13,6 +13,7 @@ bool BlueboyPeripherals::Initialize() {
 
   CalibrationStorage::Initialize();
   
+  /*
   if (!lis2mdl.Initialize()) {
     Serial.println(F("Failed to find LIS2MDL"));
     return false;
@@ -20,6 +21,12 @@ bool BlueboyPeripherals::Initialize() {
   
   if (!lsm6ds33.Initialize()) {
     Serial.println(F("Failed to find LSM6DS33"));
+    return false;
+  }
+  */
+  
+  if (!bno080.Initialize()) {
+    Serial.println(F("Failed to find BNO080"));
     return false;
   }
 
@@ -46,23 +53,26 @@ bool BlueboyPeripherals::ReadRaw(Device dev, struct AttitudeData *data) {
 bool BlueboyPeripherals::ReadOwnRaw(struct AttitudeData *data) {
   sensors_event_t event;
   
-  // Adafruit's unified sensor vector has to be converted to our vectors
-  if (!lis2mdl.GetEvent(&event)) {
-    return false;
-  }
-  data->raw.magnetic = *(struct Vector *)&event.magnetic;
+  if (bno080.UpdateReadings()) {
+    if (!bno080.GetEvent(&event, SENSOR_TYPE_MAGNETIC_FIELD)) {
+      return false;
+    }
+    data->raw.magnetic = *(struct Vector *)&event.magnetic;
+    
+    if (!bno080.GetEvent(&event, SENSOR_TYPE_ACCELEROMETER)) {
+      return false;
+    }
+    data->raw.acceleration = *(struct Vector *)&event.acceleration;
+    
+    if (!bno080.GetEvent(&event, SENSOR_TYPE_GYROSCOPE)) {
+      return false;
+    }
+    data->raw.gyro = *(struct Vector *)&event.gyro;
+    
+    return true;
+  }  
   
-  if (!lsm6ds33.GetEventRaw(&event, SENSOR_TYPE_ACCELEROMETER)) {
-    return false;
-  }
-  data->raw.acceleration = *(struct Vector *)&event.acceleration;
-  
-  if (!lsm6ds33.GetEvent(&event, SENSOR_TYPE_GYROSCOPE)) {
-    return false;
-  }
-  data->raw.gyro = *(struct Vector *)&event.gyro;
-  
-  return true;
+  return false;
 }
 
 bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {  
@@ -97,8 +107,12 @@ bool BlueboyPeripherals::ReadOrientation(Device dev, struct AttitudeData *data) 
   return false;
 }
 
-//! @todo finish this
 bool BlueboyPeripherals::ReadOwnOrientation(struct AttitudeData *data) {
+  struct Quaternion quaternion;
+  if (bno080.UpdateReadings() && bno080.GetOrientationQuaternion(&quaternion)) {
+    data->orientation.quaternion = quaternion;
+    return true;
+  }
   return false;
 }
 
