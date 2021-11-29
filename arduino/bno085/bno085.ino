@@ -1,4 +1,5 @@
 #include "src/sensors/CalibratedBNO080.h"
+#include "src/Blueboy.h"
 
 CalibratedBNO080 bno;
 
@@ -11,16 +12,20 @@ void setup() {
   if (!bno.Initialize()) {
     Serial.println("Failed to find IMU");
   }
+  Wire.setClock(400000); //Increase I2C data rate to 400kHz
 }
 
-void loop() {
-  sensors_event_t event;
-  /*
-  mag.GetEvent(&event, SENSOR_TYPE_MAGNETIC_FIELD);
-  
-  float heading = atan2(event.magnetic.y, event.magnetic.x) * 180 / PI;
-  Serial.println(heading);
+struct Quaternion q;
 
-  delay(100);
-  */
+void loop() {
+  if (bno.UpdateReadings() && bno.GetOrientationQuaternion(&q)) {
+    Serial.print(q.x, 2);
+    Serial.print(F(","));
+    Serial.print(q.y, 2);
+    Serial.print(F(","));
+    Serial.print(q.z, 2);
+    Serial.print(F(","));
+    Serial.print(q.w, 2);
+    Serial.println();
+  }
 }

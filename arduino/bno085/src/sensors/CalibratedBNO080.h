@@ -23,11 +23,18 @@
  */
 class CalibratedBNO080 : public SimpleCalibratedSensor {
  public:
-  CalibratedBNO080() : _BNO080(BNO080()) { }
+  CalibratedBNO080();
   
   bool Initialize() override;
   
+  /*!
+   * @brief Updates readings from the BNO080, blocking until receiving the latest data.
+   * @return True if a reading was successfully taken.
+   */   
+  bool CalibratedBNO080::UpdateReadings();
+  
   // Outputs a sensor event of the given event (ignored if this sensor only outputs one type)
+  // pre: UpdateReadings() was previously called
   // Returns true iff the sensor was successfully read
   /*! Allows type to be:
    *  SENSOR_TYPE_MAGNETOMETER
@@ -36,7 +43,7 @@ class CalibratedBNO080 : public SimpleCalibratedSensor {
    */
   bool GetEventRaw(sensors_event_t *event, sensors_type_t type = 0) override;
   
-    /*!
+  /*!
    * @brief Takes a reading of the 1U test system's orientation as a quaternion
    * @param eulers Pointer to a Quaternion to fill
    * @return True if the system successfully returned a reading
@@ -76,7 +83,7 @@ class CalibratedBNO080 : public SimpleCalibratedSensor {
    */
   virtual void ClearCalibration(sensors_type_t type = 0) override;
  private:
-  volatile BNO080              _BNO080;      // internal BNO080 driver
+  BNO080              _bno080;      // internal BNO080 driver
 };
 
 #endif
