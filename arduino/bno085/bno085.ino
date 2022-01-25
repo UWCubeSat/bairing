@@ -3,6 +3,8 @@
 
 CalibratedBNO080 bno;
 
+unsigned long last;
+
 void setup() {
   Serial.begin(9600);
   Wire.begin();
@@ -13,12 +15,16 @@ void setup() {
     Serial.println("Failed to find IMU");
   }
   Wire.setClock(400000); //Increase I2C data rate to 400kHz
+
+  last = millis();
 }
 
 struct Quaternion q;
 
 void loop() {
-  if (bno.UpdateReadings() && bno.GetOrientationQuaternion(&q)) {
+  unsigned long now = millis();
+  if (now - last >= 200) {
+    bno.GetOrientationQuaternion(&q);
     Serial.print(F("Quaternion: "));
     Serial.print(q.x, 2);
     Serial.print(F(", "));
@@ -28,5 +34,7 @@ void loop() {
     Serial.print(F(", "));
     Serial.print(q.w, 2);
     Serial.println();
+
+    last = now;
   }
 }

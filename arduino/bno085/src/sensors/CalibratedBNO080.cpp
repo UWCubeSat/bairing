@@ -16,7 +16,7 @@ constexpr uint8_t BNO080_ADDR = 0x4A;
  * @var uint16_t BNO080_PERIOD
  * Default sample period between packets.
  */
-constexpr uint16_t BNO080_PERIOD = 50;
+constexpr uint16_t BNO080_PERIOD = 100;
 
 CalibratedBNO080::CalibratedBNO080() : _bno080(BNO080()) { }
 
@@ -36,6 +36,9 @@ bool CalibratedBNO080::UpdateReadings() {
 }
 
 bool CalibratedBNO080::GetEventRaw(sensors_event_t *event, sensors_type_t type) {
+  // grab all data that may be pending
+  while (_bno080.dataAvailable()) { }
+  
   uint8_t accuracy;
   
   switch (type) {
@@ -52,6 +55,9 @@ bool CalibratedBNO080::GetEventRaw(sensors_event_t *event, sensors_type_t type) 
 }
 
 bool CalibratedBNO080::GetOrientationQuaternion(struct Quaternion *quaternion) {
+  // grab all data that may be pending
+  while (_bno080.dataAvailable()) { }
+  
   quaternion->x = _bno080.getQuatI();
   quaternion->y = _bno080.getQuatJ();
   quaternion->z = _bno080.getQuatK();
@@ -60,6 +66,9 @@ bool CalibratedBNO080::GetOrientationQuaternion(struct Quaternion *quaternion) {
 }
 
 bool CalibratedBNO080::GetOrientationEulers(struct Vector *eulers) {
+  // grab all data that may be pending
+  while (_bno080.dataAvailable()) { }
+  
   eulers->roll = _bno080.getRoll();
   eulers->pitch = _bno080.getPitch();
   eulers->heading = _bno080.getYaw();
