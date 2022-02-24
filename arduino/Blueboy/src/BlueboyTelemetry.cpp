@@ -76,9 +76,9 @@ void BlueboyTelemetry::SendAttitude(Device dev, AttitudeMode mode, const struct 
       _sender.AddFloat(data.raw.gyro.z);
       break;
     case AttitudeMode::Euler:
-      _sender.AddFloat(data.orientation.euler.pitch);
-      _sender.AddFloat(data.orientation.euler.roll);
-      _sender.AddFloat(data.orientation.euler.heading);
+      _sender.AddFloat(data.orientation.eulers.pitch);
+      _sender.AddFloat(data.orientation.eulers.roll);
+      _sender.AddFloat(data.orientation.eulers.heading);
       break;
     case AttitudeMode::Quaternion:
       _sender.AddFloat(data.orientation.quaternion.x);
@@ -114,6 +114,10 @@ void BlueboyTelemetry::Tick() {
       // send attitude
       if (_settings[i].mode == AttitudeMode::Raw) {
         _peripherals.ReadRaw(dev, &data);
+      } else if (_settings[i].mode == AttitudeMode::Quaternion) {
+        _peripherals.ReadQuaternion(dev, &data);
+      } else if (_settings[i].mode == AttitudeMode::Euler) {
+        _peripherals.ReadEulers(dev, &data);
       }
   
       SendAttitude(dev, _settings[i].mode, data);

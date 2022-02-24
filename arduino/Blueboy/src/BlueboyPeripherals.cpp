@@ -97,19 +97,19 @@ bool BlueboyPeripherals::ReadTestRaw(struct AttitudeData *data) {
   return true;
 }
 
-bool BlueboyPeripherals::ReadOrientation(Device dev, struct AttitudeData *data) {
+bool BlueboyPeripherals::ReadQuaternion(Device dev, struct AttitudeData *data) {
   switch (dev) {
     case Device::Own:
-      return ReadOwnOrientation(data);
+      return ReadOwnQuaternion(data);
     case Device::Test:
-      return ReadTestOrientation(data);
+      return ReadTestQuaternion(data);
   }
   return false;
 }
 
-bool BlueboyPeripherals::ReadOwnOrientation(struct AttitudeData *data) {
+bool BlueboyPeripherals::ReadOwnQuaternion(struct AttitudeData *data) {
   struct Quaternion quaternion;
-  if (bno080.UpdateReadings() && bno080.GetOrientationQuaternion(&quaternion)) {
+  if (bno080.GetOrientationQuaternion(&quaternion)) {
     data->orientation.quaternion = quaternion;
     return true;
   }
@@ -117,6 +117,30 @@ bool BlueboyPeripherals::ReadOwnOrientation(struct AttitudeData *data) {
 }
 
 //! @todo finish this
-bool BlueboyPeripherals::ReadTestOrientation(struct AttitudeData *data) {
+bool BlueboyPeripherals::ReadTestQuaternion(struct AttitudeData *data) {
+  return false;
+}
+
+bool BlueboyPeripherals::ReadEulers(Device dev, struct AttitudeData *data) {
+  switch (dev) {
+    case Device::Own:
+      return ReadOwnEulers(data);
+    case Device::Test:
+      return ReadTestEulers(data);
+  }
+  return false;
+}
+
+bool BlueboyPeripherals::ReadOwnEulers(struct AttitudeData *data) {
+  struct Vector eulers;
+  if (bno080.GetOrientationEulers(&eulers)) {
+    data->orientation.eulers = eulers;
+    return true;
+  }
+  return false;
+}
+
+//! @todo finish this
+bool BlueboyPeripherals::ReadTestEulers(struct AttitudeData *data) {
   return false;
 }

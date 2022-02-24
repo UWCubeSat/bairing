@@ -19,20 +19,18 @@ void setup() {
   last = millis();
 }
 
-struct Quaternion q;
+struct Vector q;
 
 void loop() {
   unsigned long now = millis();
   if (now - last >= 200) {
-    bno.GetOrientationQuaternion(&q);
-    Serial.print(F("Quaternion: "));
+    bno.GetOrientationEulers(&q);
+    Serial.print(F("Eulers: "));
     Serial.print(q.x, 2);
     Serial.print(F(", "));
     Serial.print(q.y, 2);
     Serial.print(F(", "));
     Serial.print(q.z, 2);
-    Serial.print(F(", "));
-    Serial.print(q.w, 2);
     Serial.println();
 
     last = now;

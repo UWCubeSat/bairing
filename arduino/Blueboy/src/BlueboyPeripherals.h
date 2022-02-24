@@ -52,23 +52,42 @@ class BlueboyPeripherals {
   bool ReadTestRaw(struct AttitudeData *data);
 
   /*!
-   * @brief Reads orientation data from the given device.
+   * @brief Reads orientation data as a quaternion from the given device.
    * @param dev Device to read orientation data from
    * @param data Pointer to an AttitudeData struct to be filled with data
    */
-  bool ReadOrientation(Device dev, struct AttitudeData *data);
+  bool ReadQuaternion(Device dev, struct AttitudeData *data);
   
   /*!
-   * @brief Reads orientation data from Blueboy.
+   * @brief Reads orientation data as a quaternion from Blueboy.
    * @param data Pointer to an AttitudeData struct to be filled with data
    */
-  bool ReadOwnOrientation(struct AttitudeData *data);
+  bool ReadOwnQuaternion(struct AttitudeData *data);
   
   /*!
-   * @brief Reads orientation data from the mounted test system.
+   * @brief Reads orientation data as a quaternion from the mounted test system.
    * @param data Pointer to an AttitudeData struct to be filled with data
    */
-  bool ReadTestOrientation(struct AttitudeData *data);
+  bool ReadTestQuaternion(struct AttitudeData *data);
+  
+  /*!
+   * @brief Reads orientation data as euler angles from the given device.
+   * @param dev Device to read orientation data from
+   * @param data Pointer to an AttitudeData struct to be filled with data
+   */
+  bool ReadEulers(Device dev, struct AttitudeData *data);
+  
+  /*!
+   * @brief Reads orientation data as euler angles from Blueboy.
+   * @param data Pointer to an AttitudeData struct to be filled with data
+   */
+  bool ReadOwnEulers(struct AttitudeData *data);
+  
+  /*!
+   * @brief Reads orientation data as euler angles from the mounted test system.
+   * @param data Pointer to an AttitudeData struct to be filled with data
+   */
+  bool ReadTestEulers(struct AttitudeData *data);
   
   /*!
    * @return True if any onboard sensors are currently calibrating.

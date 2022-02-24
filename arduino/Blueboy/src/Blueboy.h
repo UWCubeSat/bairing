@@ -63,7 +63,7 @@ struct AttitudeData {
     } raw;
 	
     union {
-      struct Vector euler;              // radians
+      struct Vector eulers;             // radians
       struct Quaternion quaternion;     // ???
     } orientation;
   };
