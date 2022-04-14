@@ -116,8 +116,12 @@ bool BlueboyPeripherals::ReadOwnQuaternion(struct AttitudeData *data) {
   return false;
 }
 
-//! @todo finish this
 bool BlueboyPeripherals::ReadTestQuaternion(struct AttitudeData *data) {
+  struct Quaternion quaternion;
+  if (oneU.GetOrientationQuaternion(&quaternion)) {
+    data->orientation.quaternion = quaternion;
+    return true;
+  }
   return false;
 }
 
@@ -142,5 +146,10 @@ bool BlueboyPeripherals::ReadOwnEulers(struct AttitudeData *data) {
 
 //! @todo finish this
 bool BlueboyPeripherals::ReadTestEulers(struct AttitudeData *data) {
+  struct Vector eulers;
+  if (oneU.GetOrientationEulers(&eulers)) {
+    data->orientation.eulers = eulers;
+    return true;
+  }
   return false;
 }
